@@ -15,13 +15,21 @@ router.post('/register/student', async (req, res) => {
   try {
     const { name, email, password, class: cls, age, schoolName, district, language, ngoId } = req.body;
 
-    const exists = await User.findOne({ email });
+    // Use findOne with lean for faster check, then rely on unique index for race condition protection
+    const exists = await User.findOne({ email }).lean();
     if (exists) return res.status(400).json({ error: 'Email already registered' });
 
-    const user = await User.create({ name, email, password, role: 'student', ngoId, language });
-    await Student.create({ userId: user._id, ngoId, class: cls, age, schoolName, district });
-
-    res.status(201).json({ token: generateToken(user._id), user });
+    try {
+      const user = await User.create({ name, email, password, role: 'student', ngoId, language });
+      await Student.create({ userId: user._id, ngoId, class: cls, age, schoolName, district });
+      res.status(201).json({ token: generateToken(user._id), user });
+    } catch (createError) {
+      // Handle duplicate key error from MongoDB unique index
+      if (createError.code === 11000 && createError.keyPattern?.email) {
+        return res.status(400).json({ error: 'Email already registered' });
+      }
+      throw createError;
+    }
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
@@ -32,13 +40,21 @@ router.post('/register/volunteer', async (req, res) => {
   try {
     const { name, email, password, highestDegree, subjects, teachingExperience, grades, language, ngoId } = req.body;
 
-    const exists = await User.findOne({ email });
+    // Use findOne with lean for faster check, then rely on unique index for race condition protection
+    const exists = await User.findOne({ email }).lean();
     if (exists) return res.status(400).json({ error: 'Email already registered' });
 
-    const user = await User.create({ name, email, password, role: 'volunteer', ngoId, language });
-    await Volunteer.create({ userId: user._id, ngoId, highestDegree, subjects, teachingExperience, grades });
-
-    res.status(201).json({ token: generateToken(user._id), user, message: 'Registration successful. Please complete qualification test.' });
+    try {
+      const user = await User.create({ name, email, password, role: 'volunteer', ngoId, language });
+      await Volunteer.create({ userId: user._id, ngoId, highestDegree, subjects, teachingExperience, grades });
+      res.status(201).json({ token: generateToken(user._id), user, message: 'Registration successful. Please complete qualification test.' });
+    } catch (createError) {
+      // Handle duplicate key error from MongoDB unique index
+      if (createError.code === 11000 && createError.keyPattern?.email) {
+        return res.status(400).json({ error: 'Email already registered' });
+      }
+      throw createError;
+    }
   } catch (err) {
     res.status(400).json({ error: err.message });
   }

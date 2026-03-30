@@ -82,7 +82,7 @@ export default function AppLayout({ role }) {
             </div>
             <div>
               <p className="font-display font-bold text-base text-surface-900 leading-none">EduReach</p>
-              <p className="text-xs text-surface-400 mt-0.5">Telangana</p>
+              <p className="text-xs text-surface-400 mt-0.5">Education Platform</p>
             </div>
           </div>
         </div>

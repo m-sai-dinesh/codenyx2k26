@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { GraduationCap, Eye, EyeOff, LogIn, AlertCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
+import Header from '../components/Header';
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -28,8 +29,11 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex">
-      {/* Left panel */}
+    <div className="min-h-screen bg-surface-50">
+      <Header showAuth={false} />
+      
+      <div className="flex min-h-screen">
+        {/* Left panel */}
       <div className="hidden lg:flex w-1/2 bg-brand-950 flex-col justify-between p-12 relative overflow-hidden">
         <div className="absolute inset-0">
           <div className="absolute top-1/4 -left-20 w-80 h-80 bg-brand-700 rounded-full blur-3xl opacity-30" />
@@ -45,7 +49,7 @@ export default function LoginPage() {
           <blockquote className="text-4xl font-display font-bold text-white leading-tight mb-6">
             "Every student deserves a mentor who believes in them."
           </blockquote>
-          <p className="text-brand-300 text-sm">Connecting Telangana's government school students with qualified mentors and senior peers.</p>
+          <p className="text-brand-300 text-sm">Connecting students with qualified mentors and senior peers.</p>
         </div>
         <div className="relative flex gap-6">
           {[['500+', 'Students'], ['120+', 'Mentors'], ['8', 'Districts']].map(([n, l]) => (
@@ -128,6 +132,7 @@ export default function LoginPage() {
             </div>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

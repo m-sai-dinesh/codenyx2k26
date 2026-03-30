@@ -8,6 +8,7 @@ const PeerMentor = require('../models/PeerMentor');
  * + Mentor Strength (20) + Student Weakness Alignment (10)
  * = Max 100
  */
+// mentor is the full Volunteer/PeerMentor document (with .userId populated as User)
 const calculateMatchScore = (student, mentor, mentorSubjects, mentorGrades) => {
   let score = 0;
 
@@ -20,15 +21,17 @@ const calculateMatchScore = (student, mentor, mentorSubjects, mentorGrades) => {
   const gradeMatch = mentorGrades.includes(student.class);
   score += gradeMatch ? 25 : 0;
 
-  // Language match (if mentor has language preference stored)
-  if (mentor.language === student.language) score += 15;
-  else score += 7; // partial credit - still can communicate
+  // Language match — language is on the User record (mentor.userId)
+  const mentorLanguage = mentor.userId?.language;
+  if (mentorLanguage === student.language) score += 15;
+  else score += 7; // partial credit
 
   // Mentor strength (based on performance score 0-100 → scaled to 20)
-  score += Math.min(20, (mentor.performanceScore / 100) * 20);
+  score += Math.min(20, ((mentor.performanceScore || 0) / 100) * 20);
 
   // Capacity factor (penalize near-full mentors)
-  const capacityUsed = (mentor.studentIds?.length || mentor.juniorStudentIds?.length || 0) / (mentor.capacity || 10);
+  const assignedCount = (mentor.studentIds?.length || 0) + (mentor.juniorStudentIds?.length || 0);
+  const capacityUsed = assignedCount / (mentor.capacity || 10);
   score += capacityUsed < 0.5 ? 10 : capacityUsed < 0.8 ? 5 : 0;
 
   return Math.round(score);
@@ -53,7 +56,7 @@ const findBestMentor = async (student, ngoId) => {
   for (const pm of peerMentors) {
     // Peer mentor should be at least 1 class above the student
     if (pm.class <= student.class) continue;
-    const score = calculateMatchScore(student, pm.userId, pm.subjects, [student.class, student.class - 1]);
+    const score = calculateMatchScore(student, pm, pm.subjects, [student.class, student.class - 1]);
     if (score > bestPeerScore) {
       bestPeerScore = score;
       bestPeer = pm;
@@ -71,7 +74,7 @@ const findBestMentor = async (student, ngoId) => {
   let bestVolunteerScore = 0;
 
   for (const vol of volunteers) {
-    const score = calculateMatchScore(student, vol.userId, vol.subjects, vol.grades);
+    const score = calculateMatchScore(student, vol, vol.subjects, vol.grades);
     if (score > bestVolunteerScore) {
       bestVolunteerScore = score;
       bestVolunteer = vol;

@@ -1,6 +1,8 @@
 import { useNavigate } from 'react-router-dom';
 import { GraduationCap, Users, BookOpen, Trophy, ArrowRight, CheckCircle2, Star, BookMarked, BarChart3, Shield } from 'lucide-react';
 import { useEffect, useRef } from 'react';
+import Header from '../components/Header';
+import Footer from '../components/Footer';
 
 const FEATURES = [
   { icon: Users, title: 'Three-Tier Mentorship', desc: 'Volunteers guide peer mentors, peer mentors guide juniors. A self-sustaining learning community.' },
@@ -48,58 +50,44 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-white overflow-x-hidden">
-      {/* Nav */}
-      <nav className="sticky top-0 z-50 glass border-b border-surface-100 px-6 py-4">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-brand-600 flex items-center justify-center">
-              <GraduationCap size={20} color="white" />
-            </div>
-            <span className="font-display font-bold text-xl text-surface-900">EduReach</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <button onClick={() => navigate('/login')} className="btn-ghost">Sign in</button>
-            <button onClick={() => navigate('/register/student')} className="btn-primary">Get Started <ArrowRight size={16} /></button>
-          </div>
-        </div>
-      </nav>
+      <Header transparent={true} />
 
       {/* Hero */}
-      <section className="relative px-6 pt-24 pb-20 overflow-hidden">
+      <section className="relative px-4 sm:px-6 pt-20 sm:pt-24 pb-16 sm:pb-20 overflow-hidden">
         {/* Background blobs */}
-        <div className="absolute top-0 right-0 w-96 h-96 bg-brand-100 rounded-full blur-3xl opacity-40 -translate-y-1/2 translate-x-1/2" />
-        <div className="absolute bottom-0 left-0 w-72 h-72 bg-brand-50 rounded-full blur-3xl opacity-60" />
+        <div className="absolute top-0 right-0 w-64 sm:w-96 h-64 sm:h-96 bg-brand-100 rounded-full blur-3xl opacity-40 -translate-y-1/2 translate-x-1/2" />
+        <div className="absolute bottom-0 left-0 w-48 sm:w-72 h-48 sm:h-72 bg-brand-50 rounded-full blur-3xl opacity-60" />
 
         <div className="max-w-4xl mx-auto text-center relative">
-          <div className="inline-flex items-center gap-2 bg-brand-50 text-brand-700 text-sm font-semibold px-4 py-2 rounded-full mb-8 border border-brand-200"
+          <div className="inline-flex items-center gap-2 bg-brand-50 text-brand-700 text-xs sm:text-sm font-semibold px-3 sm:px-4 py-1.5 sm:py-2 rounded-full mb-6 sm:mb-8 border border-brand-200"
             style={{ animation: 'fadeUp 0.5s ease forwards' }}>
             <span className="w-2 h-2 bg-brand-500 rounded-full animate-pulse" />
-            Built for Telangana. Ready for India.
+            Built for India. Ready for the World.
           </div>
 
-          <h1 className="font-display font-extrabold text-5xl md:text-7xl text-surface-900 leading-[1.05] mb-6"
+          <h1 className="font-display font-extrabold text-3xl sm:text-4xl md:text-5xl lg:text-7xl text-surface-900 leading-[1.05] mb-4 sm:mb-6"
             style={{ animation: 'fadeUp 0.5s ease 0.1s forwards', opacity: 0 }}>
             No child falls behind{' '}
             <span className="text-brand-600 relative">
               silently
-              <svg className="absolute -bottom-2 left-0 w-full" viewBox="0 0 300 12" fill="none">
+              <svg className="absolute -bottom-1 sm:-bottom-2 left-0 w-full" viewBox="0 0 300 12" fill="none">
                 <path d="M2 10 Q150 2 298 10" stroke="#2a9d76" strokeWidth="3" strokeLinecap="round" fill="none" />
               </svg>
             </span>
           </h1>
 
-          <p className="text-xl text-surface-500 max-w-2xl mx-auto mb-10 leading-relaxed"
+          <p className="text-base sm:text-lg sm:text-xl text-surface-500 max-w-2xl mx-auto mb-8 sm:mb-10 leading-relaxed px-2"
             style={{ animation: 'fadeUp 0.5s ease 0.2s forwards', opacity: 0 }}>
             EduReach connects government school students with qualified mentors and senior peers.
             Every doubt tracked. Every session recorded. Every child seen.
           </p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4"
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4"
             style={{ animation: 'fadeUp 0.5s ease 0.3s forwards', opacity: 0 }}>
-            <button onClick={() => navigate('/register/student')} className="btn-primary text-base px-8 py-3.5">
+            <button onClick={() => navigate('/register/student')} className="btn-primary text-sm sm:text-base px-6 sm:px-8 py-3 sm:py-3.5 w-full sm:w-auto">
               I'm a Student <ArrowRight size={18} />
             </button>
-            <button onClick={() => navigate('/register/volunteer')} className="btn-secondary text-base px-8 py-3.5">
+            <button onClick={() => navigate('/register/volunteer')} className="btn-secondary text-sm sm:text-base px-6 sm:px-8 py-3 sm:py-3.5 w-full sm:w-auto">
               I want to Volunteer
             </button>
           </div>
@@ -124,16 +112,16 @@ export default function LandingPage() {
       </section>
 
       {/* Stats */}
-      <section className="bg-brand-950 px-6 py-16">
+      <section className="bg-brand-950 px-4 sm:px-6 py-12 sm:py-16">
         <div className="max-w-4xl mx-auto">
-          <p className="text-center text-brand-300 text-sm font-semibold uppercase tracking-widest mb-10">The Reality in India's Schools</p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <p className="text-center text-brand-300 text-xs sm:text-sm font-semibold uppercase tracking-widest mb-8 sm:mb-10">The Reality in India's Schools</p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
             {STATS.map((stat, i) => (
               <div key={i} className="text-center">
-                <div className="font-display font-extrabold text-5xl text-white mb-2">
+                <div className="font-display font-extrabold text-4xl sm:text-5xl text-white mb-2">
                   <AnimatedCounter target={stat.value} />
                 </div>
-                <p className="text-brand-300 text-sm">{stat.label}</p>
+                <p className="text-brand-300 text-xs sm:text-sm">{stat.label}</p>
               </div>
             ))}
           </div>
@@ -141,21 +129,21 @@ export default function LandingPage() {
       </section>
 
       {/* Features */}
-      <section className="px-6 py-24 bg-surface-50">
+      <section className="px-4 sm:px-6 py-16 sm:py-24 bg-surface-50">
         <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-16">
-            <p className="text-brand-600 font-semibold text-sm uppercase tracking-widest mb-3">Platform Features</p>
-            <h2 className="font-display font-bold text-4xl text-surface-900">Everything a learning program needs</h2>
+          <div className="text-center mb-12 sm:mb-16">
+            <p className="text-brand-600 font-semibold text-xs sm:text-sm uppercase tracking-widest mb-3">Platform Features</p>
+            <h2 className="font-display font-bold text-3xl sm:text-4xl text-surface-900">Everything a learning program needs</h2>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {FEATURES.map(({ icon: Icon, title, desc }, i) => (
-              <div key={i} className="card-hover p-6 group"
+              <div key={i} className="card-hover p-4 sm:p-6 group"
                 style={{ animation: `fadeUp 0.5s ease ${i * 0.07}s forwards`, opacity: 0 }}>
-                <div className="w-11 h-11 rounded-xl bg-brand-50 flex items-center justify-center mb-4 group-hover:bg-brand-100 transition-colors">
-                  <Icon size={22} className="text-brand-600" />
+                <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-brand-50 flex items-center justify-center mb-3 sm:mb-4 group-hover:bg-brand-100 transition-colors">
+                  <Icon size={20} className="text-brand-600" />
                 </div>
-                <h3 className="font-display font-semibold text-surface-900 mb-2">{title}</h3>
-                <p className="text-sm text-surface-500 leading-relaxed">{desc}</p>
+                <h3 className="font-display font-semibold text-surface-900 mb-2 text-sm sm:text-base">{title}</h3>
+                <p className="text-xs sm:text-sm text-surface-500 leading-relaxed">{desc}</p>
               </div>
             ))}
           </div>
@@ -163,11 +151,11 @@ export default function LandingPage() {
       </section>
 
       {/* How it works */}
-      <section className="px-6 py-24 bg-white">
+      <section className="px-4 sm:px-6 py-16 sm:py-24 bg-white">
         <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-16">
-            <p className="text-brand-600 font-semibold text-sm uppercase tracking-widest mb-3">How It Works</p>
-            <h2 className="font-display font-bold text-4xl text-surface-900">From signup to success in 4 steps</h2>
+          <div className="text-center mb-12 sm:mb-16">
+            <p className="text-brand-600 font-semibold text-xs sm:text-sm uppercase tracking-widest mb-3">How It Works</p>
+            <h2 className="font-display font-bold text-3xl sm:text-4xl text-surface-900">From signup to success in 4 steps</h2>
           </div>
           <div className="relative">
             <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-surface-200 hidden md:block" />
@@ -177,13 +165,13 @@ export default function LandingPage() {
               { step: '03', title: 'Learn, Ask, Grow', desc: 'Attend offline sessions. Upload doubt photos. Get answers. Track progress through weekly exams.' },
               { step: '04', title: 'NGO Sees Everything', desc: 'At-risk alerts fire automatically. Mentor performance tracked. Badges awarded. No student falls through the cracks.' },
             ].map((item, i) => (
-              <div key={i} className="flex gap-6 mb-12 relative">
-                <div className="w-12 h-12 rounded-2xl bg-brand-600 text-white font-display font-bold text-sm flex items-center justify-center flex-shrink-0 z-10">
+              <div key={i} className="flex gap-4 sm:gap-6 mb-8 sm:mb-12 relative">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-brand-600 text-white font-display font-bold text-xs sm:text-sm flex items-center justify-center flex-shrink-0 z-10">
                   {item.step}
                 </div>
-                <div className="pt-2">
-                  <h3 className="font-display font-semibold text-lg text-surface-900 mb-1">{item.title}</h3>
-                  <p className="text-surface-500 text-sm leading-relaxed">{item.desc}</p>
+                <div className="pt-1 sm:pt-2">
+                  <h3 className="font-display font-semibold text-base sm:text-lg text-surface-900 mb-1">{item.title}</h3>
+                  <p className="text-surface-500 text-xs sm:text-sm leading-relaxed">{item.desc}</p>
                 </div>
               </div>
             ))}
@@ -192,38 +180,28 @@ export default function LandingPage() {
       </section>
 
       {/* CTA */}
-      <section className="px-6 py-20 bg-brand-600 relative overflow-hidden">
+      <section className="px-4 sm:px-6 py-16 sm:py-20 bg-brand-600 relative overflow-hidden">
         <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-0 right-0 w-96 h-96 bg-white rounded-full blur-3xl" />
-          <div className="absolute bottom-0 left-0 w-64 h-64 bg-white rounded-full blur-3xl" />
+          <div className="absolute top-0 right-0 w-64 sm:w-96 h-64 sm:h-96 bg-white rounded-full blur-3xl" />
+          <div className="absolute bottom-0 left-0 w-48 sm:w-64 h-48 sm:h-64 bg-white rounded-full blur-3xl" />
         </div>
         <div className="max-w-2xl mx-auto text-center relative">
-          <h2 className="font-display font-bold text-4xl text-white mb-4">Ready to make a difference?</h2>
-          <p className="text-brand-100 mb-8">Join as a student looking for support, or a volunteer who wants to teach.</p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <h2 className="font-display font-bold text-3xl sm:text-4xl text-white mb-4">Ready to make a difference?</h2>
+          <p className="text-brand-100 mb-6 sm:mb-8 text-sm sm:text-base">Join as a student looking for support, or a volunteer who wants to teach.</p>
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
             <button onClick={() => navigate('/register/student')}
-              className="px-8 py-3.5 bg-white text-brand-700 font-display font-semibold rounded-xl hover:bg-brand-50 transition-colors">
+              className="px-6 sm:px-8 py-3 sm:py-3.5 bg-white text-brand-700 font-display font-semibold rounded-xl hover:bg-brand-50 transition-colors text-sm sm:text-base">
               Register as Student
             </button>
             <button onClick={() => navigate('/register/volunteer')}
-              className="px-8 py-3.5 bg-brand-700 text-white font-display font-semibold rounded-xl hover:bg-brand-800 transition-colors border border-brand-500">
+              className="px-6 sm:px-8 py-3 sm:py-3.5 bg-brand-700 text-white font-display font-semibold rounded-xl hover:bg-brand-800 transition-colors border border-brand-500 text-sm sm:text-base">
               Register as Volunteer
             </button>
           </div>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="px-6 py-8 bg-surface-950 text-surface-400 text-sm">
-        <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <GraduationCap size={18} className="text-brand-400" />
-            <span className="font-display font-semibold text-white">EduReach</span>
-            <span>— Built for Telangana</span>
-          </div>
-          <p>© 2024 EduReach. Empowering government school students.</p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

@@ -94,10 +94,20 @@ router.get('/student', protect, authorize('student'), async (req, res) => {
   }
 });
 
-// GET /api/dashboard/volunteer — volunteer dashboard
-router.get('/volunteer', protect, authorize('volunteer'), async (req, res) => {
+// GET /api/dashboard/volunteer — volunteer / peer_mentor dashboard
+router.get('/volunteer', protect, authorize('volunteer', 'peer_mentor'), async (req, res) => {
   try {
-    const volunteer = await Volunteer.findOne({ userId: req.user._id });
+    let volunteer;
+    let assignedStudentIds = [];
+
+    if (req.user.role === 'volunteer') {
+      volunteer = await Volunteer.findOne({ userId: req.user._id });
+      assignedStudentIds = volunteer?.studentIds || [];
+    } else {
+      volunteer = await PeerMentor.findOne({ userId: req.user._id });
+      assignedStudentIds = volunteer?.juniorStudentIds || [];
+    }
+
     const pendingDoubts = await Doubt.find({
       mentorId: req.user._id,
       status: { $in: ['pending', 'reopened'] }
@@ -109,7 +119,7 @@ router.get('/volunteer', protect, authorize('volunteer'), async (req, res) => {
     }).sort({ scheduledDate: 1 }).limit(5);
 
     const students = await Student.find({
-      userId: { $in: volunteer?.studentIds || [] }
+      userId: { $in: assignedStudentIds }
     }).populate('userId', 'name');
 
     res.json({ volunteer, pendingDoubts, upcomingSessions, students });

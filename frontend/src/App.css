@@ -1,18 +1,19 @@
+/* App.css - Cleaned up with actual color values */
 .counter {
   font-size: 16px;
   padding: 5px 10px;
   border-radius: 5px;
-  color: var(--accent);
-  background: var(--accent-bg);
+  color: #1e7d5e;
+  background: #eef9f4;
   border: 2px solid transparent;
   transition: border-color 0.3s;
   margin-bottom: 24px;
 
   &:hover {
-    border-color: var(--accent-border);
+    border-color: #4db592;
   }
   &:focus-visible {
-    outline: 2px solid var(--accent);
+    outline: 2px solid #1e7d5e;
     outline-offset: 2px;
   }
 }
@@ -72,7 +73,7 @@
 
 #next-steps {
   display: flex;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid #e2ebe6;
   text-align: left;
 
   & > div {
@@ -96,11 +97,11 @@
 }
 
 #docs {
-  border-right: 1px solid var(--border);
+  border-right: 1px solid #e2ebe6;
 
   @media (max-width: 1024px) {
     border-right: none;
-    border-bottom: 1px solid var(--border);
+    border-bottom: 1px solid #e2ebe6;
   }
 }
 
@@ -116,10 +117,10 @@
   }
 
   a {
-    color: var(--text-h);
+    color: #2f423c;
     font-size: 16px;
     border-radius: 6px;
-    background: var(--social-bg);
+    background: #f0f4f2;
     display: flex;
     padding: 6px 12px;
     align-items: center;
@@ -128,7 +129,7 @@
     transition: box-shadow 0.3s;
 
     &:hover {
-      box-shadow: var(--shadow);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
     .button-icon {
       height: 18px;
@@ -155,7 +156,7 @@
 
 #spacer {
   height: 88px;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid #e2ebe6;
   @media (max-width: 1024px) {
     height: 48px;
   }
@@ -175,10 +176,10 @@
 
   &::before {
     left: 0;
-    border-left-color: var(--border);
+    border-left-color: #e2ebe6;
   }
   &::after {
     right: 0;
-    border-right-color: var(--border);
+    border-right-color: #e2ebe6;
   }
 }

@@ -6,6 +6,12 @@ const cloudinary = require('../config/cloudinary');
 const { protect, authorize } = require('../middleware/auth');
 const Doubt = require('../models/Doubt');
 const Student = require('../models/Student');
+const PeerMentor = require('../models/PeerMentor');
+
+// Validate Cloudinary configuration
+if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+  console.warn('⚠️  Cloudinary configuration missing. Image uploads will fail.');
+}
 
 // Cloudinary storage for doubt images
 const storage = new CloudinaryStorage({
@@ -98,11 +104,25 @@ router.put('/:id/resolve', protect, authorize('student'), async (req, res) => {
   }
 });
 
+// PUT /api/doubts/:id/reopen — student reopens an answered doubt
+router.put('/:id/reopen', protect, authorize('student'), async (req, res) => {
+  try {
+    const doubt = await Doubt.findById(req.params.id);
+    if (!doubt) return res.status(404).json({ error: 'Doubt not found' });
+    if (doubt.studentId.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ error: 'Not your doubt' });
+    }
+    await Doubt.findByIdAndUpdate(req.params.id, { status: 'reopened' });
+    res.json({ message: 'Doubt reopened' });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
 // PUT /api/doubts/:id/escalate — peer mentor escalates to volunteer
 router.put('/:id/escalate', protect, authorize('peer_mentor'), async (req, res) => {
   try {
     const doubt = await Doubt.findById(req.params.id);
-    const PeerMentor = require('../models/PeerMentor');
     const pm = await PeerMentor.findOne({ userId: req.user._id });
 
     await doubt.updateOne({

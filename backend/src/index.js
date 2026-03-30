@@ -4,7 +4,8 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
@@ -67,11 +68,14 @@ app.use((err, req, res, next) => {
 
 // MongoDB connection with retry logic
 const connectDB = async () => {
+  const uri = process.env.MONGODB_URI;
+  if (!uri || typeof uri !== 'string' || !uri.trim()) {
+    console.error('❌ MongoDB URI is not defined. Please set MONGODB_URI in backend/.env.');
+    setTimeout(connectDB, 5000);
+    return;
+  }
   try {
-    await mongoose.connect(process.env.MONGODB_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
+    await mongoose.connect(uri);
     console.log('✅ MongoDB connected');
   } catch (err) {
     console.error('❌ MongoDB connection failed:', err.message);

@@ -4,8 +4,8 @@ const { protect, authorize } = require('../middleware/auth');
 const Session = require('../models/Session');
 const Student = require('../models/Student');
 
-// POST /api/sessions — volunteer creates session
-router.post('/', protect, authorize('volunteer'), async (req, res) => {
+// POST /api/sessions — volunteer or peer_mentor creates session
+router.post('/', protect, authorize('volunteer', 'peer_mentor'), async (req, res) => {
   try {
     const session = await Session.create({
       volunteerId: req.user._id,
@@ -27,8 +27,8 @@ router.get('/my', protect, async (req, res) => {
     } else {
       const student = await Student.findOne({ userId: req.user._id });
       sessions = await Session.find({
-        'attendance.studentId': req.user._id,
-        class: student?.class
+        ngoId: req.user.ngoId,
+        class: student?.class,
       }).sort({ scheduledDate: -1 });
     }
     res.json(sessions);

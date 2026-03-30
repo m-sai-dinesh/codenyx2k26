@@ -20,7 +20,7 @@ router.post('/run', protect, authorize('student'), async (req, res) => {
     }
 
     const { mentor, type, score } = result;
-    student.mentorId = type === 'volunteer' ? mentor.userId._id : mentor.userId._id;
+    student.mentorId = mentor.userId._id;
     student.mentorType = type;
     await student.save();
 

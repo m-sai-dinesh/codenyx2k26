@@ -8,7 +8,11 @@ const { detectPersistentWeakTopics } = require('../utils/atRiskDetector');
 // POST /api/exams — volunteer creates exam
 router.post('/', protect, authorize('volunteer'), async (req, res) => {
   try {
-    const totalMarks = req.body.questions?.reduce((sum, q) => sum + (q.marks || 1), 0) || 0;
+    if (!req.body.questions || req.body.questions.length === 0) {
+      return res.status(400).json({ error: 'Questions array is required and cannot be empty' });
+    }
+    
+    const totalMarks = req.body.questions.reduce((sum, q) => sum + (q.marks || 1), 0);
     const exam = await Exam.create({
       volunteerId: req.user._id,
       ngoId: req.user.ngoId,
@@ -71,7 +75,7 @@ router.post('/:id/submit', protect, authorize('student'), async (req, res) => {
       .filter(([, pct]) => pct < 40)
       .map(([topic]) => topic);
 
-    const percentage = Math.round((score / exam.totalMarks) * 100);
+    const percentage = exam.totalMarks > 0 ? Math.round((score / exam.totalMarks) * 100) : 0;
 
     const result = await ExamResult.create({
       examId: exam._id,
@@ -90,7 +94,7 @@ router.post('/:id/submit', protect, authorize('student'), async (req, res) => {
       await Student.findOneAndUpdate({ userId: req.user._id }, {
         diagnosticScore: percentage,
         diagnosticCompleted: true,
-        weakSubjects: [exam.subject],
+        $addToSet: { weakSubjects: exam.subject },
         isPeerMentorCandidate: percentage >= 85
       });
     }

@@ -11,7 +11,11 @@ const userSchema = new mongoose.Schema({
     required: true
   },
   ngoId: { type: mongoose.Schema.Types.ObjectId, ref: 'NGO' },
-  language: { type: String, enum: ['english', 'telugu', 'hindi'], default: 'english' },
+  language: {
+    type: String,
+    enum: ['english', 'telugu', 'hindi', 'tamil', 'marathi', 'bengali', 'gujarati', 'kannada', 'malayalam', 'punjabi', 'odia', 'assamese'],
+    default: 'english'
+  },
   isActive: { type: Boolean, default: true },
   profileImage: { type: String, default: '' },
   createdAt: { type: Date, default: Date.now }

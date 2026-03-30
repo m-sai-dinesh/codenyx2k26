@@ -13,7 +13,7 @@ const STATUS_CONFIG = {
 
 const SUBJECTS = ['Mathematics', 'Science', 'English', 'Telugu', 'Hindi', 'Social Studies'];
 
-function DoubtCard({ doubt, isStudent, onAction }) {
+function DoubtCard({ doubt, isStudent, isPeerMentor, onAction }) {
   const [expanded, setExpanded] = useState(false);
   const [answer, setAnswer] = useState('');
   const [answerImg, setAnswerImg] = useState(null);
@@ -98,8 +98,11 @@ function DoubtCard({ doubt, isStudent, onAction }) {
                 <CheckCircle2 size={15} /> Mark Resolved
               </button>
               <button onClick={async () => {
-                await api.put(`/doubts/${doubt._id}/resolve`).then(() => api.put(`/doubts/${doubt._id}`, { status: 'reopened' }));
-                onAction();
+                try {
+                  await api.put(`/doubts/${doubt._id}/reopen`);
+                  toast.success('Doubt reopened');
+                  onAction();
+                } catch { toast.error('Failed to reopen'); }
               }} className="btn-secondary flex-1 justify-center py-2 text-sm">
                 <RefreshCw size={15} /> Still Confused
               </button>
@@ -125,10 +128,12 @@ function DoubtCard({ doubt, isStudent, onAction }) {
                 {answerImg && <button onClick={() => setAnswerImg(null)}><X size={14} className="text-red-400" /></button>}
               </div>
               <div className="flex gap-3">
-                {/* Peer mentor escalate */}
-                <button onClick={handleEscalate} className="btn-secondary py-2 text-sm">
-                  <ArrowUpRight size={15} /> Escalate
-                </button>
+                {/* Only peer mentors can escalate to their supervising volunteer */}
+                {isPeerMentor && (
+                  <button onClick={handleEscalate} className="btn-secondary py-2 text-sm">
+                    <ArrowUpRight size={15} /> Escalate
+                  </button>
+                )}
                 <button onClick={handleAnswer} disabled={loading || !answer} className="btn-primary flex-1 justify-center py-2 text-sm">
                   {loading ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full spin" /> : <><Send size={15} /> Send Answer</>}
                 </button>
@@ -144,6 +149,7 @@ function DoubtCard({ doubt, isStudent, onAction }) {
 export default function DoubtsPage() {
   const { user } = useAuth();
   const isStudent = user?.role === 'student';
+  const isPeerMentor = user?.role === 'peer_mentor';
   const [doubts, setDoubts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
@@ -275,7 +281,7 @@ export default function DoubtsPage() {
         ) : (
           filtered.map((d, i) => (
             <div key={d._id} style={{ animationDelay: `${i * 0.05}s` }}>
-              <DoubtCard doubt={d} isStudent={isStudent} onAction={load} />
+              <DoubtCard doubt={d} isStudent={isStudent} isPeerMentor={isPeerMentor} onAction={load} />
             </div>
           ))
         )}

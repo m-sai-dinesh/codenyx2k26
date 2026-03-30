@@ -30,14 +30,18 @@ export default function VolunteerDashboard() {
             Welcome back, {user?.name?.split(' ')[0]} 👋
           </h1>
           <p className="text-surface-500 text-sm mt-1">
-            {volunteer?.qualificationPassed ? `${volunteer.subjects?.join(', ')}` : 'Complete your qualification test to get started'}
+            {user?.role === 'peer_mentor'
+            ? `Peer Mentor · ${volunteer?.subjects?.join(', ') || 'All subjects'}`
+            : volunteer?.qualificationPassed
+              ? `${volunteer.subjects?.join(', ')}`
+              : 'Complete your qualification test to get started'}
           </p>
         </div>
         {volunteer?.isVerified && <span className="verified-badge">✓ Verified Mentor</span>}
       </div>
 
-      {/* Qualification test CTA */}
-      {!volunteer?.qualificationPassed && (
+      {/* Qualification test CTA — only for volunteers, not peer_mentors */}
+      {user?.role !== 'peer_mentor' && !volunteer?.qualificationPassed && (
         <div className="card p-5 bg-amber-50 border border-amber-200 flex items-center justify-between"
           style={{ animation: 'fadeUp 0.4s ease 0.05s forwards', opacity: 0 }}>
           <div>
@@ -51,7 +55,7 @@ export default function VolunteerDashboard() {
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4" style={{ animation: 'fadeUp 0.4s ease 0.1s forwards', opacity: 0 }}>
         {[
-          { icon: Users, label: 'Students', value: volunteer?.studentIds?.length || 0, color: 'text-brand-600' },
+          { icon: Users, label: 'Students', value: volunteer?.studentIds?.length ?? volunteer?.juniorStudentIds?.length ?? 0, color: 'text-brand-600' },
           { icon: MessageCircleQuestion, label: 'Pending Doubts', value: pendingDoubts.length, color: 'text-amber-600' },
           { icon: Star, label: 'Avg Rating', value: avgRating, color: 'text-yellow-500' },
           { icon: TrendingUp, label: 'Performance', value: `${volunteer?.performanceScore || 0}%`, color: 'text-purple-600' },

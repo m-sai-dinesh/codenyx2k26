@@ -6,7 +6,20 @@ import toast from 'react-hot-toast';
 
 const SUBJECTS = ['Mathematics', 'Science', 'English', 'Telugu', 'Hindi', 'Social Studies', 'Physics', 'Chemistry', 'Biology'];
 const DEGREES = ['B.Sc', 'B.A', 'B.Com', 'B.Tech', 'M.Sc', 'M.A', 'M.Tech', 'B.Ed', 'M.Ed', 'PhD'];
-const LANGUAGES = [{ value: 'telugu', label: 'తెలుగు' }, { value: 'hindi', label: 'हिंदी' }, { value: 'english', label: 'English' }];
+const LANGUAGES = [
+  { value: 'english', label: 'English' },
+  { value: 'hindi', label: 'हिंदी (Hindi)' },
+  { value: 'telugu', label: 'తెలుగు (Telugu)' },
+  { value: 'tamil', label: 'தமிழ் (Tamil)' },
+  { value: 'marathi', label: 'मराठी (Marathi)' },
+  { value: 'bengali', label: 'বাংলা (Bengali)' },
+  { value: 'gujarati', label: 'ગુજરાતી (Gujarati)' },
+  { value: 'kannada', label: 'ಕನ್ನಡ (Kannada)' },
+  { value: 'malayalam', label: 'മലയാളം (Malayalam)' },
+  { value: 'punjabi', label: 'ਪੰਜਾਬੀ (Punjabi)' },
+  { value: 'odia', label: 'ଓଡ଼ିଆ (Odia)' },
+  { value: 'assamese', label: 'অসমীয়া (Assamese)' },
+];
 const NGO_ID = '000000000000000000000001';
 
 export default function RegisterVolunteer() {

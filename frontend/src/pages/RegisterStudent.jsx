@@ -3,10 +3,29 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { GraduationCap, ArrowRight, ArrowLeft, CheckCircle2 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import Header from '../components/Header';
+import Footer from '../components/Footer';
 
 const SUBJECTS = ['Mathematics', 'Science', 'English', 'Telugu', 'Hindi', 'Social Studies'];
-const DISTRICTS = ['Hyderabad', 'Rangareddy', 'Medchal', 'Sangareddy', 'Vikarabad', 'Nizamabad', 'Karimnagar', 'Warangal', 'Khammam', 'Nalgonda'];
-const LANGUAGES = [{ value: 'telugu', label: 'తెలుగు (Telugu)' }, { value: 'hindi', label: 'हिंदी (Hindi)' }, { value: 'english', label: 'English' }];
+const DISTRICTS = [
+  'Hyderabad', 'Rangareddy', 'Medchal', 'Sangareddy', 'Vikarabad', 'Nizamabad', 
+  'Karimnagar', 'Warangal', 'Khammam', 'Nalgonda', 'Mahabubnagar', 'Adilabad',
+  'Other'
+];
+const LANGUAGES = [
+  { value: 'english', label: 'English' },
+  { value: 'hindi', label: 'हिंदी (Hindi)' },
+  { value: 'telugu', label: 'తెలుగు (Telugu)' },
+  { value: 'tamil', label: 'தமிழ் (Tamil)' },
+  { value: 'marathi', label: 'मराठी (Marathi)' },
+  { value: 'bengali', label: 'বাংলা (Bengali)' },
+  { value: 'gujarati', label: 'ગુજરાતી (Gujarati)' },
+  { value: 'kannada', label: 'ಕನ್ನಡ (Kannada)' },
+  { value: 'malayalam', label: 'മലയാളം (Malayalam)' },
+  { value: 'punjabi', label: 'ਪੰਜਾਬੀ (Punjabi)' },
+  { value: 'odia', label: 'ଓଡ଼ିଆ (Odia)' },
+  { value: 'assamese', label: 'অসমীয়া (Assamese)' },
+];
 
 const NGO_ID = '000000000000000000000001'; // placeholder
 
@@ -46,15 +65,15 @@ export default function RegisterStudent() {
   const steps = ['Account', 'School Info', 'Subjects'];
 
   return (
-    <div className="min-h-screen bg-surface-50 flex items-center justify-center px-4 py-12">
-      <div className="w-full max-w-lg" style={{ animation: 'fadeUp 0.5s ease forwards' }}>
-        {/* Header */}
-        <div className="text-center mb-8">
-          <Link to="/" className="inline-flex items-center gap-2 mb-6 text-brand-600 hover:text-brand-700 font-medium text-sm">
-            <GraduationCap size={20} /> EduReach
-          </Link>
-          <h1 className="font-display font-bold text-3xl text-surface-900 mb-2">Create Student Account</h1>
-          <p className="text-surface-500 text-sm">Join thousands of students getting support across Telangana</p>
+    <div className="min-h-screen bg-surface-50">
+      <Header showAuth={false} />
+      
+      <div className="flex items-center justify-center px-4 py-12 min-h-screen">
+        <div className="w-full max-w-lg" style={{ animation: 'fadeUp 0.5s ease forwards' }}>
+          {/* Header */}
+          <div className="text-center mb-8">
+            <h1 className="font-display font-bold text-3xl text-surface-900 mb-2">Create Student Account</h1>
+            <p className="text-surface-500 text-sm">Join thousands of students getting quality education support</p>
         </div>
 
         {/* Step indicator */}
@@ -201,6 +220,9 @@ export default function RegisterStudent() {
           Already have an account? <Link to="/login" className="text-brand-600 font-semibold hover:underline">Sign in</Link>
         </p>
       </div>
+      </div>
+      
+      <Footer />
     </div>
   );
 }
