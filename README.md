@@ -138,7 +138,7 @@ Verified (✓) badge requires 4.5★+ for 3 months + NGO Admin approval.
 Scoped by district. Students list and claim textbooks.
 
 ### Strict Volunteer Qualification Workflow
-- Volunteers build a "Teaching Matrix" choosing exact subjects for specific classes (1-7).
+- Volunteers build a "Teaching Matrix" choosing exact subjects for specific classes (1-10).
 - Access is strictly locked until they pass automatically assigned **Qualification Exams** for every subject chosen.
 - NGO Admins manage a comprehensive Qualification Exam Tracker on their dashboard.
 - Volunteers only appear for NGO Approval after achieving ≥ 60% on all required exams.

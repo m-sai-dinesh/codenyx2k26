@@ -138,7 +138,7 @@ All models have `ngoId` as optional. Google OAuth users (volunteers, students) h
 | Method | Path | Auth | Notes |
 |--------|------|------|-------|
 | PUT | `/student-profile` | student | Completes profile after OAuth (name, class, age, schoolName, district, language) |
-| PUT | `/profile` | volunteer | Completes volunteer matrix profile (teachingPreferences: class 1-7 + subjects) |
+| PUT | `/profile` | volunteer | Completes volunteer matrix profile (teachingPreferences: class 1-10 + subjects) |
 | PUT | `/:id/approve` | ngo_admin | Approves a volunteer after passing qualification exams |
 
 ### `sessions.js` — `/api/sessions/*`
@@ -230,7 +230,7 @@ On submit, exam grading runs topic-by-topic breakdown. If `exam.type === 'diagno
 `atRiskDetector.js` checks: attendance < 60%, exam score declining, no activity in 14+ days. Results stored as `student.isAtRisk = true` with `atRiskReasons[]`. Surfaced in NGO dashboard.
 
 ### Volunteer Approval Pipeline
-Volunteers create a "Teaching Preferences" matrix specifying exact combinations of classes (1-7) and subjects.
+Volunteers create a "Teaching Preferences" matrix specifying exact combinations of classes (1-10) and subjects.
 Their account is locked (`isApproved: false`) until they pass corresponding Qualification Exams assigned by the NGO Admin. The NGO Admin has an active Matrix Tracker on their dashboard to one-click create any missing Qualification Exams. Only after the volunteer scores >= 60% across the board will they appear in the NGO Admin's pending queue for one-click approval.
 
 ### Textbook access (Google Drive)

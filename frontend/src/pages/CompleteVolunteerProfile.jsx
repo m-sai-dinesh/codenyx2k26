@@ -11,7 +11,7 @@ const getSubjectsForClass = (cls) => {
   const c = parseInt(cls, 10);
   if (c >= 1 && c <= 5) {
     return ['First Language (Telugu/Urdu/Regional)', 'Second Language (English)', 'Mathematics', 'Environmental Studies (EVS)'];
-  } else if (c >= 6 && c <= 7) {
+  } else if (c >= 6 && c <= 10) {
     return ['First Language (Telugu/Urdu)', 'Second Language (English)', 'Third Language (Hindi)', 'Mathematics', 'General Science', 'Social Studies'];
   }
   return [];
@@ -174,8 +174,8 @@ export default function CompleteVolunteerProfile() {
               <div className="bg-surface-50 border border-surface-200 rounded-xl p-4 flex flex-col gap-4">
                 <div>
                   <label className="label text-xs mb-2">{t('Select a Class')}</label>
-                  <div className="grid grid-cols-7 gap-2">
-                    {Array.from({ length: 7 }, (_, i) => i + 1).map(cls => (
+                  <div className="grid grid-cols-5 md:grid-cols-10 gap-2">
+                    {Array.from({ length: 10 }, (_, i) => i + 1).map(cls => (
                       <button 
                         key={cls} 
                         type="button" 

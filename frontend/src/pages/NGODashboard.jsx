@@ -10,7 +10,7 @@ const getSubjectsForClass = (cls) => {
   const c = parseInt(cls, 10);
   if (c >= 1 && c <= 5) {
     return ['First Language (Telugu/Urdu/Regional)', 'Second Language (English)', 'Mathematics', 'Environmental Studies (EVS)'];
-  } else if (c >= 6 && c <= 7) {
+  } else if (c >= 6 && c <= 10) {
     return ['First Language (Telugu/Urdu)', 'Second Language (English)', 'Third Language (Hindi)', 'Mathematics', 'General Science', 'Social Studies'];
   }
   return [];
@@ -84,8 +84,8 @@ export default function NGODashboard() {
           </div>
           <span className="text-xs text-brand-700">Required tests per subject</span>
         </div>
-        <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {Array.from({ length: 7 }, (_, i) => i + 1).map(cls => {
+        <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+          {Array.from({ length: 10 }, (_, i) => i + 1).map(cls => {
             const subjects = getSubjectsForClass(cls);
             return (
               <div key={cls} className="bg-surface-50 border border-surface-200 rounded-xl p-3">
