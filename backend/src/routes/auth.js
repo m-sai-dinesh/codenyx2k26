@@ -65,8 +65,17 @@ router.post('/register/volunteer', async (req, res) => {
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
-    const user = await User.findOne({ email });
-    if (!user || !(await user.matchPassword(password))) {
+    const user = await User.findOne({ email: email.toLowerCase() });
+    if (!user) {
+      return res.status(401).json({ error: 'Invalid email or password' });
+    }
+    if (user.role === 'volunteer' || user.role === 'peer_mentor') {
+      return res.status(401).json({ error: 'Volunteers must sign in with Google. Use the "Continue with Google" button.' });
+    }
+    if (user.authProvider === 'google') {
+      return res.status(401).json({ error: 'This account uses Google Sign-In. Please use the Google button.' });
+    }
+    if (!(await user.matchPassword(password))) {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
     res.json({ token: generateToken(user._id), user });
@@ -93,40 +102,35 @@ router.get('/google/callback',
 
       // Check if user already exists
       let user = await User.findOne({ email });
-      
+      let isNew = false;
+
       if (!user) {
-        // Create new user with Google OAuth
+        isNew = true;
+        // Create new user with Google OAuth (no password needed for Google users)
         user = new User({
           name,
           email,
-          password: googleId, // Use Google ID as password placeholder
           role: 'volunteer',
-          isEmailVerified: true, // Auto-verify Google emails
+          isEmailVerified: true,
           authProvider: 'google',
           googleId
         });
-        
         await user.save();
 
-        // Create volunteer profile
-        const volunteer = new Volunteer({
+        // Create volunteer profile (ngoId left unset until profile completion)
+        await Volunteer.create({
           userId: user._id,
           firstName,
           lastName,
           email,
           profilePicture,
-          highestDegree: '', // Will be filled later
+          highestDegree: '',
           teachingExperience: 0,
           subjects: [],
           grades: [],
-          ngoId: '000000000000000000000001', // Default NGO
-          isVerified: true, // Auto-verify Google users
-          authProvider: 'google'
         });
-        
-        await volunteer.save();
       } else if (user.authProvider !== 'google') {
-        // User exists but not with Google - link accounts
+        // Existing local account — link to Google
         user.googleId = googleId;
         user.authProvider = 'google';
         await user.save();
@@ -135,8 +139,8 @@ router.get('/google/callback',
       // Generate JWT token
       const token = generateToken(user._id);
 
-      // Redirect to frontend with token
-      res.redirect(`${process.env.FRONTEND_URL}/oauth-success?token=${token}&role=${user.role}`);
+      // Redirect to frontend with token, role, and isNew flag
+      res.redirect(`${process.env.FRONTEND_URL}/oauth-success?token=${token}&role=${user.role}&isNew=${isNew}`);
       
     } catch (error) {
       console.error('Google OAuth error:', error);

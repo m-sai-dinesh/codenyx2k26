@@ -1,4 +1,4 @@
-# EduReach — Learning Support Platform
+# ShikshaSetu Learning Platform — Learning Support Platform
 
 > "No child falls behind silently."
 
@@ -190,4 +190,4 @@ POST /api/match/run
 
 ---
 
-Built by EduReach Team · CodeNyx 2024 · GDG on Campus CVR
+Built by ShikshaSetu Learning Platform Team · CodeNyx 2024 · GDG on Campus CVR

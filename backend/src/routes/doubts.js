@@ -16,7 +16,7 @@ if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !pr
 // Cloudinary storage for doubt images
 const storage = new CloudinaryStorage({
   cloudinary,
-  params: { folder: 'edureach/doubts', allowed_formats: ['jpg', 'jpeg', 'png', 'webp'] }
+  params: { folder: 'shikshasetu/doubts', allowed_formats: ['jpg', 'jpeg', 'png', 'webp'] }
 });
 const upload = multer({ storage, limits: { fileSize: 5 * 1024 * 1024 } });
 

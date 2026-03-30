@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-EduReach is a three-tier learning support platform connecting Telangana government school students with qualified volunteers and senior peer mentors. Built as a full-stack React + Node.js application.
+ShikshaSetu Learning Platform is a three-tier learning support platform connecting Telangana government school students with qualified volunteers and senior peer mentors. Built as a full-stack React + Node.js application.
 
 ## Development Commands
 

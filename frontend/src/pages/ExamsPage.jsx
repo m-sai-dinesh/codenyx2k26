@@ -34,7 +34,7 @@ function ExamTaker({ exam, onDone }) {
         'bg-red-100 text-red-700'
       }`}>{result.percentage}%</div>
       <h2 className="font-display font-bold text-xl text-surface-900">
-        {result.percentage >= 70 ? 'Great work! 🎉' : result.percentage >= 40 ? 'Keep practicing 💪' : 'Need more practice 📚'}
+        {result.percentage >= 70 ? 'Great work!' : result.percentage >= 40 ? 'Keep practicing' : 'Need more practice'}
       </h2>
       <p className="text-surface-500 text-sm">{result.score} / {result.totalMarks} marks</p>
       {result.weakTopics?.length > 0 && (
@@ -171,7 +171,6 @@ export default function ExamsPage() {
               <span className={`ml-auto badge text-xs ${
                 results[results.length-1].percentage > results[0].percentage ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
               }`}>
-                {results[results.length-1].percentage > results[0].percentage ? '↑' : '↓'}
                 {Math.abs(results[results.length-1].percentage - results[0].percentage)}% from baseline
               </span>
             )}

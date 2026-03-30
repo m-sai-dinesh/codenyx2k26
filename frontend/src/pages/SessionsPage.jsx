@@ -49,7 +49,7 @@ function SessionCard({ session, isVolunteer, onNotesSubmit }) {
             </div>
             <div className="flex items-center gap-3 mt-1 text-xs text-surface-400">
               <span className="flex items-center gap-1"><BookOpen size={12} /> {session.subject}</span>
-              {session.location && <span className="flex items-center gap-1">📍 {session.location}</span>}
+              {session.location && <span className="flex items-center gap-1 font-medium">{session.location}</span>}
               {session.attendance?.length > 0 && (
                 <span className="flex items-center gap-1">
                   <Users size={12} />
@@ -87,7 +87,7 @@ function SessionCard({ session, isVolunteer, onNotesSubmit }) {
               )}
               {session.assignments?.length > 0 && (
                 <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-xl">
-                  <p className="text-xs font-semibold text-amber-700 mb-1">📋 Assignment</p>
+                  <p className="text-xs font-semibold text-amber-700 mb-1">Assignment</p>
                   {session.assignments.map((a, i) => (
                     <div key={i} className="text-sm text-surface-700">
                       <p className="font-medium">{a.title}</p>

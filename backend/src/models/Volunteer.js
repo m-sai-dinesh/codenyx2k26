@@ -2,8 +2,8 @@ const mongoose = require('mongoose');
 
 const volunteerSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  ngoId: { type: mongoose.Schema.Types.ObjectId, ref: 'NGO', required: true },
-  highestDegree: { type: String, required: true },
+  ngoId: { type: mongoose.Schema.Types.ObjectId, ref: 'NGO' },
+  highestDegree: { type: String, default: '' },
   subjects: [{ type: String, required: true }],
   teachingExperience: { type: Number, default: 0 }, // years
   grades: [{ type: Number }], // which classes they can teach

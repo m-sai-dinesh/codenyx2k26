@@ -27,6 +27,29 @@ router.get('/profile', protect, async (req, res) => {
   }
 });
 
+// PUT /api/users/profile — volunteer/peer_mentor updates their profile after OAuth signup
+router.put('/profile', protect, authorize('volunteer', 'peer_mentor'), async (req, res) => {
+  try {
+    const { name, highestDegree, teachingExperience, subjects, grades } = req.body;
+
+    if (name && name.trim()) {
+      await User.findByIdAndUpdate(req.user._id, { name: name.trim() });
+    }
+
+    const volunteer = await Volunteer.findOneAndUpdate(
+      { userId: req.user._id },
+      { highestDegree, teachingExperience, subjects, grades },
+      { new: true, runValidators: true }
+    );
+
+    if (!volunteer) return res.status(404).json({ error: 'Volunteer profile not found' });
+
+    res.json({ message: 'Profile updated', volunteer });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
 // POST /api/users/match-mentor — run matching for a student after diagnostic
 router.post('/match-mentor', protect, authorize('student'), async (req, res) => {
   try {

@@ -3,14 +3,14 @@ import api from '../api/client';
 import { Trophy, Star, Zap, TrendingUp, Users, BadgeCheck } from 'lucide-react';
 
 const BADGE_CONFIG = {
-  rising_mentor: { label: 'Rising Mentor', icon: '⭐', color: 'bg-yellow-100 text-yellow-700' },
-  impact_maker: { label: 'Impact Maker', icon: '📈', color: 'bg-green-100 text-green-700' },
-  quick_responder: { label: 'Quick Responder', icon: '⚡', color: 'bg-blue-100 text-blue-700' },
-  top_mentor: { label: 'Top Mentor', icon: '🏆', color: 'bg-purple-100 text-purple-700' },
-  peer_helper: { label: 'Peer Helper', icon: '🌱', color: 'bg-emerald-100 text-emerald-700' },
-  study_buddy: { label: 'Study Buddy', icon: '📚', color: 'bg-cyan-100 text-cyan-700' },
-  impact_peer: { label: 'Impact Peer', icon: '📈', color: 'bg-green-100 text-green-700' },
-  trusted_peer: { label: 'Trusted Peer', icon: '⭐', color: 'bg-yellow-100 text-yellow-700' },
+  rising_mentor: { label: 'Rising Mentor', icon: '', color: 'bg-yellow-100 text-yellow-700' },
+  impact_maker: { label: 'Impact Maker', icon: '', color: 'bg-green-100 text-green-700' },
+  quick_responder: { label: 'Quick Responder', icon: '', color: 'bg-blue-100 text-blue-700' },
+  top_mentor: { label: 'Top Mentor', icon: '', color: 'bg-purple-100 text-purple-700' },
+  peer_helper: { label: 'Peer Helper', icon: '', color: 'bg-emerald-100 text-emerald-700' },
+  study_buddy: { label: 'Study Buddy', icon: '', color: 'bg-cyan-100 text-cyan-700' },
+  impact_peer: { label: 'Impact Peer', icon: '', color: 'bg-green-100 text-green-700' },
+  trusted_peer: { label: 'Trusted Peer', icon: '', color: 'bg-yellow-100 text-yellow-700' },
 };
 
 const RANK_STYLE = [
@@ -29,7 +29,7 @@ function MentorRow({ rank, mentor, type }) {
       <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-display font-bold text-sm flex-shrink-0 ${
         rank <= 3 ? RANK_STYLE[rank - 1] : 'bg-surface-100 text-surface-500'
       }`}>
-        {rank <= 3 ? (rank === 1 ? '🥇' : rank === 2 ? '🥈' : '🥉') : rank}
+        {rank}
       </div>
 
       {/* Avatar */}
@@ -121,7 +121,7 @@ export default function Leaderboard() {
               const heights = ['h-28', 'h-36', 'h-24'];
               return (
                 <div key={mentor._id} className={`card flex flex-col items-center justify-end p-4 ${heights[i]}`}>
-                  <div className="text-2xl mb-1">{realRank === 1 ? '🥇' : realRank === 2 ? '🥈' : '🥉'}</div>
+                  <div className="text-2xl font-bold mb-1">#{realRank}</div>
                   <div className="w-10 h-10 rounded-full bg-brand-600 flex items-center justify-center text-white font-bold text-sm mb-2">
                     {mentor.userId?.name?.[0]?.toUpperCase()}
                   </div>

@@ -139,7 +139,7 @@ export default function NGODashboard() {
                       </div>
                     </div>
                     <div className="text-right flex-shrink-0">
-                      <p className="font-bold text-sm text-surface-900">{mentor.avgRating}★</p>
+                      <p className="font-bold text-sm text-surface-900">{mentor.avgRating}</p>
                     </div>
                   </div>
                 );

@@ -7,6 +7,7 @@ const rateLimit = require('express-rate-limit');
 const path = require('path');
 require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 
+const passport = require('./config/googleOAuth');
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
 const sessionRoutes = require('./routes/sessions');
@@ -36,6 +37,9 @@ app.use('/api/', limiter);
 // Body parsing
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
+
+// Passport (OAuth)
+app.use(passport.initialize());
 
 // Logging
 if (process.env.NODE_ENV === 'development') {
@@ -70,15 +74,15 @@ app.use((err, req, res, next) => {
 const connectDB = async () => {
   const uri = process.env.MONGODB_URI;
   if (!uri || typeof uri !== 'string' || !uri.trim()) {
-    console.error('❌ MongoDB URI is not defined. Please set MONGODB_URI in backend/.env.');
+    console.error('MongoDB URI is not defined. Please set MONGODB_URI in backend/.env.');
     setTimeout(connectDB, 5000);
     return;
   }
   try {
     await mongoose.connect(uri);
-    console.log('✅ MongoDB connected');
+    console.log('MongoDB connected');
   } catch (err) {
-    console.error('❌ MongoDB connection failed:', err.message);
+    console.error('MongoDB connection failed:', err.message);
     setTimeout(connectDB, 5000);
   }
 };
@@ -87,7 +91,7 @@ connectDB();
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`🚀 EduReach backend running on port ${PORT}`);
+  console.log(`ShikshaSetu Learning Platform backend running on port ${PORT}`);
 });
 
 module.exports = app;

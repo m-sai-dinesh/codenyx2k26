@@ -138,7 +138,7 @@ export default function BookExchange() {
             <div>
               <p className="font-display font-semibold text-surface-900 leading-tight">{book.title}</p>
               <p className="text-xs text-surface-400 mt-1">Class {book.class} · {book.subject}</p>
-              <p className="text-xs text-surface-400">📍 {book.district}</p>
+              <p className="text-xs text-surface-400 font-medium">{book.district}</p>
             </div>
             <div className="flex items-center justify-between mt-auto pt-2 border-t border-surface-100">
               <p className="text-xs text-surface-500">By {book.donorId?.name || 'Anonymous'}</p>

@@ -77,12 +77,9 @@ export default function AppLayout({ role }) {
         {/* Logo */}
         <div className="px-5 py-5 border-b border-surface-100">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-brand-600 flex items-center justify-center">
-              <GraduationCap size={20} color="white" />
-            </div>
             <div>
-              <p className="font-display font-bold text-base text-surface-900 leading-none">EduReach</p>
-              <p className="text-xs text-surface-400 mt-0.5">Education Platform</p>
+              <p className="font-display font-bold text-lg text-surface-900 leading-none tracking-tight">ShikshaSetu</p>
+              <p className="text-xs text-brand-600 font-medium mt-0.5">Learning Platform</p>
             </div>
           </div>
         </div>
@@ -137,8 +134,10 @@ export default function AppLayout({ role }) {
             <Menu size={20} />
           </button>
           <div className="flex items-center gap-2">
-            <GraduationCap size={18} className="text-brand-600" />
-            <span className="font-display font-bold text-surface-900">EduReach</span>
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center">
+              <BookOpen size={16} className="text-white" />
+            </div>
+            <span className="font-display font-bold text-surface-900">ShikshaSetu</span>
           </div>
         </header>
 

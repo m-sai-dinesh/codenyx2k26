@@ -2,17 +2,19 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GraduationCap, ArrowRight } from 'lucide-react';
 import toast from 'react-hot-toast';
-import Header from '../components/Header';
-import Footer from '../components/Footer';
+
+import api from '../api/client';
+import { useAuth } from '../context/AuthContext';
 
 const SUBJECTS = ['Mathematics', 'Science', 'English', 'Physics', 'Chemistry', 'Biology', 'Social Studies'];
 const DEGREES = ['B.Sc', 'B.A', 'B.Com', 'B.Tech', 'M.Sc', 'M.A', 'M.Tech', 'B.Ed', 'M.Ed', 'PhD'];
 
 export default function CompleteVolunteerProfile() {
   const navigate = useNavigate();
+  const { user, loginWithToken } = useAuth();
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
-    name: '',
+    name: user?.name || '',
     highestDegree: '',
     teachingExperience: 0,
     subjects: [],
@@ -42,23 +44,21 @@ export default function CompleteVolunteerProfile() {
 
     setLoading(true);
     try {
-      // TODO: Call API to update volunteer profile
-      // await api.post('/volunteer/complete-profile', form);
-      
-      toast.success('Profile completed! Welcome to EduReach.');
+      await api.put('/users/profile', form);
+      // Re-fetch user so the updated name propagates through AuthContext
+      const token = localStorage.getItem('edu_token');
+      if (token) await loginWithToken(token);
+      toast.success('Profile completed! Welcome to ShikshaSetu.');
       navigate('/volunteer/dashboard');
     } catch (err) {
-      toast.error('Failed to complete profile. Please try again.');
+      toast.error(err.response?.data?.error || 'Failed to complete profile. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-surface-50">
-      <Header showAuth={false} />
-      
-      <div className="flex items-center justify-center px-4 py-12 min-h-screen">
+    <div className="flex items-center justify-center px-4 py-12 min-h-screen bg-surface-50">
         <div className="w-full max-w-lg" style={{ animation: 'fadeUp 0.5s ease forwards' }}>
           <div className="text-center mb-8">
             <h1 className="font-display font-bold text-3xl text-surface-900 mb-2">Complete Your Profile</h1>
@@ -159,9 +159,6 @@ export default function CompleteVolunteerProfile() {
             </button>
           </div>
         </div>
-      </div>
-      
-      <Footer />
     </div>
   );
 }

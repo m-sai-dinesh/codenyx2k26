@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { GraduationCap, ArrowRight, Menu, X } from 'lucide-react';
+import { GraduationCap, ArrowRight, Menu, X, BookOpen } from 'lucide-react';
 import { useState } from 'react';
 
 export default function Header({ showAuth = true, transparent = false }) {
@@ -9,21 +9,20 @@ export default function Header({ showAuth = true, transparent = false }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const headerClasses = transparent 
-    ? 'sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-surface-100/50 px-4 sm:px-6 py-4'
-    : 'sticky top-0 z-50 bg-white border-b border-surface-200 px-4 sm:px-6 py-4';
+    ? 'sticky top-0 z-50 bg-gradient-to-r from-white/95 to-white/80 backdrop-blur-xl border-b border-brand-100/50 px-4 sm:px-6 py-3'
+    : 'sticky top-0 z-50 bg-white border-b border-surface-200 px-4 sm:px-6 py-3';
 
   return (
     <>
       <nav className={headerClasses}>
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div 
-            className="flex items-center gap-3 cursor-pointer"
+            className="flex items-center gap-3 cursor-pointer group"
             onClick={() => navigate('/')}
           >
-            <div className="w-9 h-9 rounded-xl bg-brand-600 flex items-center justify-center shadow-sm">
-              <GraduationCap size={20} color="white" />
+            <div className="flex items-center">
+              <span className="font-display font-bold text-2xl text-surface-900 tracking-tight">ShikshaSetu</span>
             </div>
-            <span className="font-display font-bold text-xl text-surface-900">EduReach</span>
           </div>
           
           {showAuth && (

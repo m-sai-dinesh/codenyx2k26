@@ -64,7 +64,7 @@ export default function StudentDashboard() {
       <div className="flex items-start justify-between" style={{ animation: 'fadeUp 0.4s ease forwards' }}>
         <div>
           <h1 className="font-display font-bold text-2xl text-surface-900">
-            Hey {user?.name?.split(' ')[0]} 👋
+            Hey {user?.name?.split(' ')[0]}
           </h1>
           <p className="text-surface-500 text-sm mt-1">
             Class {student?.class} · {student?.schoolName}

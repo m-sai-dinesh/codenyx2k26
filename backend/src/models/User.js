@@ -4,7 +4,7 @@ const bcrypt = require('bcryptjs');
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true, trim: true },
   email: { type: String, required: true, unique: true, lowercase: true },
-  password: { type: String, required: function() { return !this.authProvider; }, minlength: 6 },
+  password: { type: String, required: function() { return this.authProvider === 'local'; }, minlength: 6 },
   role: {
     type: String,
     enum: ['student', 'peer_mentor', 'volunteer', 'ngo_admin'],
@@ -25,10 +25,9 @@ const userSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 // Hash password before saving
-userSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) return next();
+userSchema.pre('save', async function () {
+  if (!this.isModified('password') || !this.password) return;
   this.password = await bcrypt.hash(this.password, 12);
-  next();
 });
 
 userSchema.methods.matchPassword = async function (enteredPassword) {

@@ -19,14 +19,16 @@ import OAuthError from './pages/OAuthError';
 import AppLayout from './components/AppLayout';
 
 const ProtectedRoute = ({ children, roles }) => {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
+  if (loading) return null;
   if (!user) return <Navigate to="/login" replace />;
   if (roles && !roles.includes(user.role)) return <Navigate to="/dashboard" replace />;
   return children;
 };
 
 const DashboardRouter = () => {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
+  if (loading) return null;
   if (!user) return <Navigate to="/login" />;
   if (user.role === 'student') return <Navigate to="/student/dashboard" />;
   if (user.role === 'volunteer' || user.role === 'peer_mentor') return <Navigate to="/volunteer/dashboard" />;

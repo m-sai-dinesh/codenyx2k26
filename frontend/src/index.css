@@ -3,7 +3,7 @@
 @import "tailwindcss";
 @config "../tailwind.config.js";
 
-/* Custom color palette for EduReach */
+/* Custom color palette for ShikshaSetu Learning Platform */
 @layer base {
   :root {
     --brand-50: #eef9f4;
@@ -29,6 +29,11 @@
     --surface-800: #1a2e26;
     --surface-900: #0f1a15;
     --surface-950: #06110d;
+  }
+
+  footer a {
+    color: inherit;
+    text-decoration: none;
   }
 
   * { box-sizing: border-box; }
@@ -199,4 +204,267 @@
 .badge {
   display: inline-flex; align-items: center; gap: 4px;
   padding: 3px 10px; border-radius: 9999px; font-size: 12px; font-weight: 600;
+}
+
+/* ─── 3D Role Selection Cards ─── */
+.perspective-container {
+  perspective: 1000px;
+}
+
+.role-card-3d {
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.1s ease-out;
+  cursor: pointer;
+  border-radius: 24px;
+  overflow: hidden;
+}
+
+.role-card-3d::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 26px;
+  padding: 2px;
+  background: linear-gradient(135deg, transparent 30%, var(--glow-color, rgba(42,157,118,0.5)) 50%, transparent 70%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  z-index: 1;
+}
+
+.role-card-3d:hover::before {
+  opacity: 1;
+}
+
+.role-card-inner {
+  position: relative;
+  border-radius: 24px;
+  padding: 40px 32px;
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.6);
+  box-shadow: 
+    0 4px 16px rgba(0,0,0,0.06),
+    0 12px 40px rgba(0,0,0,0.04),
+    inset 0 1px 0 rgba(255,255,255,0.8);
+  transition: box-shadow 0.4s ease;
+  overflow: hidden;
+  z-index: 2;
+}
+
+.role-card-3d:hover .role-card-inner {
+  box-shadow: 
+    0 8px 32px rgba(0,0,0,0.1),
+    0 20px 60px rgba(0,0,0,0.08),
+    inset 0 1px 0 rgba(255,255,255,0.8);
+}
+
+/* Shine sweep effect */
+.role-card-shine {
+  position: absolute;
+  top: 0; left: -100%;
+  width: 100%; height: 100%;
+  background: linear-gradient(
+    120deg,
+    transparent 30%,
+    rgba(255,255,255,0.5) 50%,
+    transparent 70%
+  );
+  transition: none;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.role-card-3d:hover .role-card-shine {
+  animation: shineSweep 0.7s ease-out forwards;
+}
+
+@keyframes shineSweep {
+  from { left: -100%; }
+  to { left: 120%; }
+}
+
+/* Floating icon container */
+.role-icon-float {
+  width: 80px; height: 80px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: translateZ(40px);
+  position: relative;
+  margin: 0 auto 24px;
+}
+
+.role-icon-float::after {
+  content: '';
+  position: absolute;
+  bottom: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 50px;
+  height: 8px;
+  background: rgba(0,0,0,0.08);
+  border-radius: 50%;
+  filter: blur(4px);
+}
+
+/* Glow pulse for icon */
+@keyframes glowPulse {
+  0%, 100% { box-shadow: 0 0 20px rgba(42,157,118,0.3), 0 8px 24px rgba(42,157,118,0.15); }
+  50% { box-shadow: 0 0 32px rgba(42,157,118,0.5), 0 12px 32px rgba(42,157,118,0.25); }
+}
+
+.role-icon-glow {
+  animation: glowPulse 3s ease-in-out infinite;
+}
+
+/* 3D parallax text */
+.role-card-title {
+  font-family: 'Sora', sans-serif;
+  font-weight: 700;
+  font-size: 24px;
+  text-align: center;
+  margin-bottom: 8px;
+  transform: translateZ(20px);
+}
+
+.role-card-desc {
+  font-size: 14px;
+  text-align: center;
+  margin-bottom: 24px;
+  transform: translateZ(10px);
+}
+
+.role-card-cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border-radius: 14px;
+  font-family: 'Sora', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  border: none;
+  transition: all 0.25s;
+  transform: translateZ(15px);
+  width: 100%;
+}
+
+.role-card-cta:hover {
+  transform: translateZ(15px) scale(1.03);
+}
+
+/* Particle dots background */
+@keyframes particleDrift {
+  0% { transform: translate(0, 0) scale(1); opacity: 0.3; }
+  50% { opacity: 0.6; }
+  100% { transform: translate(var(--dx, 20px), var(--dy, -20px)) scale(0.5); opacity: 0; }
+}
+
+.role-card-particles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.role-card-particles span {
+  position: absolute;
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  animation: particleDrift 4s ease-in-out infinite;
+}
+
+/* ─── Walking Student Animation ─── */
+.walking-character {
+  animation: bodyBob 0.4s ease-in-out infinite;
+}
+
+.walk-leg-left {
+  transform-origin: 44px 93px;
+  animation: legSwingLeft 0.4s ease-in-out infinite;
+}
+
+.walk-leg-right {
+  transform-origin: 58px 93px;
+  animation: legSwingRight 0.4s ease-in-out infinite;
+}
+
+.walk-arm-left {
+  transform-origin: 33px 58px;
+  animation: armSwingLeft 0.4s ease-in-out infinite;
+}
+
+.walk-arm-right {
+  transform-origin: 69px 58px;
+  animation: armSwingRight 0.4s ease-in-out infinite;
+}
+
+.walk-shadow {
+  animation: shadowPulse 0.4s ease-in-out infinite;
+}
+
+@keyframes legSwingLeft {
+  0%, 100% { transform: rotate(25deg); }
+  50% { transform: rotate(-25deg); }
+}
+
+@keyframes legSwingRight {
+  0%, 100% { transform: rotate(-25deg); }
+  50% { transform: rotate(25deg); }
+}
+
+@keyframes armSwingLeft {
+  0%, 100% { transform: rotate(-20deg); }
+  50% { transform: rotate(20deg); }
+}
+
+@keyframes armSwingRight {
+  0%, 100% { transform: rotate(20deg); }
+  50% { transform: rotate(-20deg); }
+}
+
+@keyframes bodyBob {
+  0%, 100% { transform: translateY(0px); }
+  25% { transform: translateY(-3px); }
+  75% { transform: translateY(-3px); }
+}
+
+@keyframes shadowPulse {
+  0%, 100% { rx: 28; opacity: 0.1; }
+  25%, 75% { rx: 24; opacity: 0.15; }
+}
+
+/* ─── Book Page Flip Animation ─── */
+.book-page-flip {
+  transform-origin: left center;
+  animation: pageFlip 1.2s ease-in-out 0.6s forwards;
+}
+
+@keyframes pageFlip {
+  0% { transform: scaleX(1); }
+  30% { transform: scaleX(0.3) skewY(-2deg); }
+  60% { transform: scaleX(0.1); }
+  80% { transform: scaleX(0.6) skewY(1deg); }
+  100% { transform: scaleX(1); }
+}
+
+.page-turn-anim rect {
+  transform-origin: left center;
+  animation: pageTurn 1.2s ease-in-out 0.6s forwards;
+}
+
+@keyframes pageTurn {
+  0% { opacity: 0; transform: scaleX(0); }
+  30% { opacity: 0.7; transform: scaleX(0.8) skewY(-3deg); }
+  60% { opacity: 0.4; transform: scaleX(0.4) skewY(2deg); }
+  100% { opacity: 0; transform: scaleX(1); }
 }

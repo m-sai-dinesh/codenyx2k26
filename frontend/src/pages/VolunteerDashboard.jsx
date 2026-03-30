@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../api/client';
 import { MessageCircleQuestion, Calendar, Users, Star, TrendingUp, AlertCircle, CheckCircle2, Clock } from 'lucide-react';
 
-const BADGE_ICONS = { rising_mentor:'⭐', impact_maker:'📈', quick_responder:'⚡', top_mentor:'🏆', peer_helper:'🌱', study_buddy:'📚', impact_peer:'📈', trusted_peer:'⭐' };
+const BADGE_ICONS = { rising_mentor:'', impact_maker:'', quick_responder:'', top_mentor:'', peer_helper:'', study_buddy:'', impact_peer:'', trusted_peer:'' };
 
 export default function VolunteerDashboard() {
   const { user } = useAuth();
@@ -27,7 +27,7 @@ export default function VolunteerDashboard() {
       <div className="flex items-start justify-between" style={{ animation: 'fadeUp 0.4s ease forwards' }}>
         <div>
           <h1 className="font-display font-bold text-2xl text-surface-900">
-            Welcome back, {user?.name?.split(' ')[0]} 👋
+            Welcome back, {user?.name?.split(' ')[0]}
           </h1>
           <p className="text-surface-500 text-sm mt-1">
             {user?.role === 'peer_mentor'
@@ -77,7 +77,7 @@ export default function VolunteerDashboard() {
           <div className="flex flex-wrap gap-2">
             {volunteer.badges.map(b => (
               <span key={b} className="badge bg-brand-50 text-brand-700 text-sm">
-                {BADGE_ICONS[b] || '🏅'} {b.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
+                {BADGE_ICONS[b]} {b.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
               </span>
             ))}
           </div>

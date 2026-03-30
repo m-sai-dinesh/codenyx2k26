@@ -1,18 +1,15 @@
 import { Link } from 'react-router-dom';
 import { GraduationCap } from 'lucide-react';
-import Header from '../components/Header';
-import Footer from '../components/Footer';
+
 
 export default function RegisterVolunteer() {
   const handleGoogleAuth = () => {
-    window.location.href = 'http://localhost:5000/api/auth/google';
+    const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+    window.location.href = `${apiBase}/auth/google`;
   };
 
   return (
-    <div className="min-h-screen bg-surface-50">
-      <Header showAuth={false} />
-      
-      <div className="flex items-center justify-center px-4 py-12 min-h-screen">
+    <div className="flex items-center justify-center px-4 py-12 min-h-screen bg-surface-50">
         <div className="w-full max-w-md" style={{ animation: 'fadeUp 0.5s ease forwards' }}>
           <div className="text-center mb-8">
             <h1 className="font-display font-bold text-3xl text-surface-900 mb-2">Join as a Volunteer</h1>
@@ -67,9 +64,6 @@ export default function RegisterVolunteer() {
             Already have an account? <Link to="/login" className="text-brand-600 font-semibold hover:underline">Sign in</Link>
           </p>
         </div>
-      </div>
-      
-      <Footer />
     </div>
   );
 }
