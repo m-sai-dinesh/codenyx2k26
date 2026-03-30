@@ -4,6 +4,7 @@ const User = require('../models/User');
 const Student = require('../models/Student');
 const Volunteer = require('../models/Volunteer');
 const { protect } = require('../middleware/auth');
+const passport = require('../config/googleOAuth');
 
 const router = express.Router();
 
@@ -78,5 +79,70 @@ router.post('/login', async (req, res) => {
 router.get('/me', protect, async (req, res) => {
   res.json({ user: req.user });
 });
+
+// Google OAuth Routes
+// GET /api/auth/google - Initiate Google OAuth flow
+router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+
+// GET /api/auth/google/callback - Handle Google OAuth callback
+router.get('/google/callback', 
+  passport.authenticate('google', { session: false }),
+  async (req, res) => {
+    try {
+      const { googleId, email, name, firstName, lastName, profilePicture } = req.user;
+
+      // Check if user already exists
+      let user = await User.findOne({ email });
+      
+      if (!user) {
+        // Create new user with Google OAuth
+        user = new User({
+          name,
+          email,
+          password: googleId, // Use Google ID as password placeholder
+          role: 'volunteer',
+          isEmailVerified: true, // Auto-verify Google emails
+          authProvider: 'google',
+          googleId
+        });
+        
+        await user.save();
+
+        // Create volunteer profile
+        const volunteer = new Volunteer({
+          userId: user._id,
+          firstName,
+          lastName,
+          email,
+          profilePicture,
+          highestDegree: '', // Will be filled later
+          teachingExperience: 0,
+          subjects: [],
+          grades: [],
+          ngoId: '000000000000000000000001', // Default NGO
+          isVerified: true, // Auto-verify Google users
+          authProvider: 'google'
+        });
+        
+        await volunteer.save();
+      } else if (user.authProvider !== 'google') {
+        // User exists but not with Google - link accounts
+        user.googleId = googleId;
+        user.authProvider = 'google';
+        await user.save();
+      }
+
+      // Generate JWT token
+      const token = generateToken(user._id);
+
+      // Redirect to frontend with token
+      res.redirect(`${process.env.FRONTEND_URL}/oauth-success?token=${token}&role=${user.role}`);
+      
+    } catch (error) {
+      console.error('Google OAuth error:', error);
+      res.redirect(`${process.env.FRONTEND_URL}/oauth-error?error=auth_failed`);
+    }
+  }
+);
 
 module.exports = router;

@@ -5,6 +5,7 @@ import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import RegisterStudent from './pages/RegisterStudent';
 import RegisterVolunteer from './pages/RegisterVolunteer';
+import CompleteVolunteerProfile from './pages/CompleteVolunteerProfile';
 import StudentDashboard from './pages/StudentDashboard';
 import VolunteerDashboard from './pages/VolunteerDashboard';
 import NGODashboard from './pages/NGODashboard';
@@ -13,6 +14,8 @@ import SessionsPage from './pages/SessionsPage';
 import BookExchange from './pages/BookExchange';
 import ExamsPage from './pages/ExamsPage';
 import Leaderboard from './pages/Leaderboard';
+import OAuthSuccess from './pages/OAuthSuccess';
+import OAuthError from './pages/OAuthError';
 import AppLayout from './components/AppLayout';
 
 const ProtectedRoute = ({ children, roles }) => {
@@ -42,6 +45,9 @@ export default function App() {
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/oauth-success" element={<OAuthSuccess />} />
+          <Route path="/oauth-error" element={<OAuthError />} />
+          <Route path="/complete-volunteer-profile" element={<CompleteVolunteerProfile />} />
           <Route path="/register/student" element={<RegisterStudent />} />
           <Route path="/register/volunteer" element={<RegisterVolunteer />} />
           <Route path="/dashboard" element={<DashboardRouter />} />

@@ -4,7 +4,7 @@ const bcrypt = require('bcryptjs');
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true, trim: true },
   email: { type: String, required: true, unique: true, lowercase: true },
-  password: { type: String, required: true, minlength: 6 },
+  password: { type: String, required: function() { return !this.authProvider; }, minlength: 6 },
   role: {
     type: String,
     enum: ['student', 'peer_mentor', 'volunteer', 'ngo_admin'],
@@ -18,6 +18,9 @@ const userSchema = new mongoose.Schema({
   },
   isActive: { type: Boolean, default: true },
   profileImage: { type: String, default: '' },
+  isEmailVerified: { type: Boolean, default: false },
+  authProvider: { type: String, enum: ['local', 'google'], default: 'local' },
+  googleId: { type: String, sparse: true },
   createdAt: { type: Date, default: Date.now }
 }, { timestamps: true });
 
