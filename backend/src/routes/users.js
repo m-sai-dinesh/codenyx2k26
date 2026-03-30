@@ -56,21 +56,30 @@ router.put('/student-profile', protect, authorize('student'), async (req, res) =
 // PUT /api/users/profile — volunteer/peer_mentor updates their profile after OAuth signup
 router.put('/profile', protect, authorize('volunteer', 'peer_mentor'), async (req, res) => {
   try {
-    const { name, highestDegree, teachingExperience, subjects, grades } = req.body;
+    const { name, highestDegree, teachingExperience, teachingPreferences, class: pmClass, subjects: pmSubjects } = req.body;
 
     if (name && name.trim()) {
       await User.findByIdAndUpdate(req.user._id, { name: name.trim() });
     }
 
-    const volunteer = await Volunteer.findOneAndUpdate(
-      { userId: req.user._id },
-      { highestDegree, teachingExperience, subjects, grades },
-      { new: true, runValidators: true }
-    );
+    let profile;
+    if (req.user.role === 'volunteer') {
+      profile = await Volunteer.findOneAndUpdate(
+        { userId: req.user._id },
+        { highestDegree, teachingExperience, teachingPreferences },
+        { new: true, runValidators: true }
+      );
+    } else {
+      profile = await PeerMentor.findOneAndUpdate(
+        { userId: req.user._id },
+        { class: pmClass, subjects: pmSubjects },
+        { new: true, runValidators: true }
+      );
+    }
 
-    if (!volunteer) return res.status(404).json({ error: 'Volunteer profile not found' });
+    if (!profile) return res.status(404).json({ error: 'Profile not found' });
 
-    res.json({ message: 'Profile updated', volunteer });
+    res.json({ message: 'Profile updated', profile });
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
@@ -127,6 +136,21 @@ router.get('/leaderboard', protect, async (req, res) => {
       .limit(10);
 
     res.json({ volunteers, peerMentors });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// PUT /api/users/:id/approve — ngo admin approves a volunteer
+router.put('/:id/approve', protect, authorize('ngo_admin'), async (req, res) => {
+  try {
+    const volunteer = await Volunteer.findOneAndUpdate(
+      { userId: req.params.id, ngoId: req.user.ngoId },
+      { isApproved: true },
+      { new: true }
+    );
+    if (!volunteer) return res.status(404).json({ error: 'Volunteer not found' });
+    res.json({ message: 'Volunteer approved successfully', volunteer });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

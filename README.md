@@ -95,9 +95,9 @@ VITE_API_URL=http://localhost:5000/api
 | Role | Portal | Access |
 |---|---|---|
 | Student | `/student/*` | Dashboard, Doubts, Sessions, Exams, Book Exchange |
-| Volunteer | `/volunteer/*` | Dashboard, Doubts Queue, Sessions, Exams |
+| Volunteer | `/volunteer/*` | Dashboard (Locked until approved), Doubts Queue, Sessions, Exams |
 | Peer Mentor | `/volunteer/*` | Same as Volunteer |
-| NGO Admin | `/ngo/*` | Overview Dashboard, Leaderboard (private credentials) |
+| NGO Admin | `/ngo/*` | Overview Dashboard, Leaderboard, Exams (Qualification Exams) |
 
 ---
 
@@ -137,6 +137,12 @@ Verified (✓) badge requires 4.5★+ for 3 months + NGO Admin approval.
 ### Book Exchange
 Scoped by district. Students list and claim textbooks.
 
+### Strict Volunteer Qualification Workflow
+- Volunteers build a "Teaching Matrix" choosing exact subjects for specific classes (1-7).
+- Access is strictly locked until they pass automatically assigned **Qualification Exams** for every subject chosen.
+- NGO Admins manage a comprehensive Qualification Exam Tracker on their dashboard.
+- Volunteers only appear for NGO Approval after achieving ≥ 60% on all required exams.
+
 ### Multilingual
 Telugu / Hindi / English — set at registration via i18next.
 
@@ -149,6 +155,7 @@ POST /api/auth/register/student
 POST /api/auth/register/volunteer
 POST /api/auth/login
 GET  /api/auth/me
+PUT  /api/users/:id/approve
 
 GET  /api/dashboard/student
 GET  /api/dashboard/volunteer
@@ -166,6 +173,7 @@ PUT  /api/sessions/:id/attendance
 PUT  /api/sessions/:id/notes
 
 GET  /api/exams/active
+GET  /api/exams/qualification/required
 POST /api/exams
 POST /api/exams/:id/submit
 GET  /api/exams/results/my

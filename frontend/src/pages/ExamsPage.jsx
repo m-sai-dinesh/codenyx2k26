@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useSearchParams } from 'react-router-dom';
 import api from '../api/client';
 import toast from 'react-hot-toast';
 import { BookOpen, Plus, X, ChevronRight, Trophy, TrendingUp, AlertTriangle, CheckCircle2 } from 'lucide-react';
@@ -94,14 +95,27 @@ function ExamTaker({ exam, onDone }) {
 
 export default function ExamsPage() {
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
+  const initClass = searchParams.get('class') || '';
+  const initSubject = searchParams.get('subject') || '';
+  const initType = searchParams.get('type') || 'weekly';
+  const initCreate = searchParams.get('create') === 'true';
+
   const isStudent = user?.role === 'student';
   const [exams, setExams] = useState([]);
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeExam, setActiveExam] = useState(null);
-  const [showCreate, setShowCreate] = useState(false);
+  const [showCreate, setShowCreate] = useState(initCreate);
   const [creating, setCreating] = useState(false);
-  const [form, setForm] = useState({ title: '', subject: '', class: '', type: 'weekly', durationMinutes: 30, questions: [] });
+  const [form, setForm] = useState({ 
+    title: initCreate && initClass && initSubject ? `Class ${initClass} ${initSubject}` : '', 
+    subject: initSubject, 
+    class: initClass, 
+    type: initType, 
+    durationMinutes: 30, 
+    questions: [] 
+  });
   const [newQ, setNewQ] = useState({ text: '', topic: '', options: ['', '', '', ''], correctAnswer: 0, marks: 1 });
 
   useEffect(() => {
@@ -152,7 +166,9 @@ export default function ExamsPage() {
       <div className="flex items-center justify-between" style={{ animation: 'fadeUp 0.4s ease forwards' }}>
         <div>
           <h1 className="font-display font-bold text-2xl text-surface-900">Exams</h1>
-          <p className="text-surface-500 text-sm mt-1">{isStudent ? 'Take exams and track your growth' : 'Create exams for your students'}</p>
+          <p className="text-surface-500 text-sm mt-1">
+            {isStudent ? 'Take exams and track your growth' : user?.role === 'ngo_admin' ? 'Create qualification exams' : 'Create exams for your students'}
+          </p>
         </div>
         {!isStudent && (
           <button onClick={() => setShowCreate(s => !s)} className="btn-primary">
@@ -228,7 +244,11 @@ export default function ExamsPage() {
               <label className="label">Subject</label>
               <select className="input" value={form.subject} onChange={e => setForm(p => ({ ...p, subject: e.target.value }))}>
                 <option value="">Select</option>
-                {['Mathematics','Science','English','Telugu','Hindi','Social Studies'].map(s => <option key={s}>{s}</option>)}
+                {[
+                  'Mathematics', 'Science', 'English', 'First Language (Telugu/Urdu/Regional)', 
+                  'First Language (Telugu/Urdu)', 'Second Language (English)', 'Third Language (Hindi)', 
+                  'Environmental Studies (EVS)', 'General Science', 'Social Studies'
+                ].map(s => <option key={s} value={s}>{s}</option>)}
               </select>
             </div>
             <div>
@@ -244,6 +264,7 @@ export default function ExamsPage() {
                 <option value="weekly">Weekly</option>
                 <option value="monthly">Monthly</option>
                 <option value="diagnostic">Diagnostic</option>
+                {user?.role === 'ngo_admin' && <option value="qualification">Qualification Test</option>}
               </select>
             </div>
             <div>

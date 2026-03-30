@@ -4,9 +4,11 @@ const volunteerSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   ngoId: { type: mongoose.Schema.Types.ObjectId, ref: 'NGO' },
   highestDegree: { type: String, default: '' },
-  subjects: [{ type: String, required: true }],
   teachingExperience: { type: Number, default: 0 }, // years
-  grades: [{ type: Number }], // which classes they can teach
+  teachingPreferences: [{
+    class: { type: Number, required: true },
+    subjects: [{ type: String, required: true }]
+  }],
 
   // Qualification test
   qualificationScore: { type: Number, default: null },

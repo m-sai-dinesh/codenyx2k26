@@ -7,7 +7,7 @@ const PeerMentor = require('../models/PeerMentor');
 const Session = require('../models/Session');
 const Doubt = require('../models/Doubt');
 const { NGO } = require('../models/Book');
-const { ExamResult } = require('../models/Exam');
+const { Exam, ExamResult } = require('../models/Exam');
 const { evaluateAtRisk } = require('../utils/atRiskDetector');
 
 // GET /api/dashboard/ngo — full NGO admin view
@@ -32,7 +32,7 @@ router.get('/ngo', protect, authorize('ngo_admin'), async (req, res) => {
     const atRiskStudents = students.filter(s => s.isAtRisk);
 
     // Mentor load
-    const mentorLoad = volunteers.map(v => ({
+    const mentorLoad = volunteers.filter(v => v.isApproved).map(v => ({
       id: v._id,
       name: v.userId?.name,
       studentCount: v.studentIds.length,
@@ -42,6 +42,56 @@ router.get('/ngo', protect, authorize('ngo_admin'), async (req, res) => {
       isVerified: v.isVerified,
       avgRating: v.totalRatings > 0 ? (v.ratingSum / v.totalRatings).toFixed(1) : 0
     }));
+
+    // Pending Volunteers with their qualification exam scores
+    let pendingVolunteers = volunteers.filter(v => !v.isApproved).map(v => {
+      return {
+        id: v.userId?._id,
+        name: v.userId?.name,
+        email: v.userId?.email,
+        teachingPreferences: v.teachingPreferences || []
+      };
+    });
+
+    // Populate actual exam results for pending volunteers concurrently
+    const examResultsData = await ExamResult.find({
+      studentId: { $in: pendingVolunteers.map(v => v.id) }
+    }).populate('examId');
+
+    const allQualExams = await Exam.find({ type: 'qualification', ngoId: req.user.ngoId, isActive: true });
+
+    pendingVolunteers = pendingVolunteers.filter(pv => {
+      if (!pv.teachingPreferences || pv.teachingPreferences.length === 0) return false;
+      
+      pv.examResults = [];
+      let passedAll = true;
+
+      for (const pref of pv.teachingPreferences) {
+        for (const subject of pref.subjects) {
+          const exam = allQualExams.find(e => e.class === pref.class && e.subject.toLowerCase() === subject.toLowerCase());
+          
+          if (!exam) {
+            passedAll = false;
+            pv.examResults.push({ class: pref.class, subject, percentage: 0, status: 'missing_exam' });
+            continue;
+          }
+          
+          const result = examResultsData.find(r => r.studentId.toString() === pv.id.toString() && r.examId?._id.toString() === exam._id.toString());
+          
+          if (!result || result.percentage < 60) {
+            passedAll = false;
+          }
+          
+          pv.examResults.push({
+            class: pref.class,
+            subject,
+            percentage: result ? result.percentage : 0,
+            status: result ? (result.percentage >= 60 ? 'passed' : 'failed') : 'pending'
+          });
+        }
+      }
+      return passedAll;
+    });
 
     // Subject health overview across NGO
     const subjectDoubtCount = {};
@@ -66,9 +116,11 @@ router.get('/ngo', protect, authorize('ngo_admin'), async (req, res) => {
         reasons: s.atRiskReasons,
         attendancePercentage: s.totalSessions > 0
           ? Math.round((s.attendanceCount / s.totalSessions) * 100)
-          : 100
+          : 0
       })),
       mentorLoad,
+      pendingVolunteers,
+      qualExams: allQualExams.map(e => ({ id: e._id, class: e.class, subject: e.subject })),
       subjectDoubtCount,
     });
   } catch (err) {

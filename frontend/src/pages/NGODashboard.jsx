@@ -1,11 +1,23 @@
 import { useEffect, useState } from 'react';
 import api from '../api/client';
-import { AlertTriangle, Users, BookOpen, Trophy, TrendingUp, CheckCircle2, BarChart3 } from 'lucide-react';
+import { AlertTriangle, Users, BookOpen, Trophy, TrendingUp, CheckCircle2, BarChart3, UserCheck, Check, Plus } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { useNavigate } from 'react-router-dom';
 
 const RISK_COLORS = ['#ef4444', '#f97316', '#eab308'];
 
+const getSubjectsForClass = (cls) => {
+  const c = parseInt(cls, 10);
+  if (c >= 1 && c <= 5) {
+    return ['First Language (Telugu/Urdu/Regional)', 'Second Language (English)', 'Mathematics', 'Environmental Studies (EVS)'];
+  } else if (c >= 6 && c <= 7) {
+    return ['First Language (Telugu/Urdu)', 'Second Language (English)', 'Third Language (Hindi)', 'Mathematics', 'General Science', 'Social Studies'];
+  }
+  return [];
+};
+
 export default function NGODashboard() {
+  const navigate = useNavigate();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -15,7 +27,20 @@ export default function NGODashboard() {
 
   if (loading) return <div className="flex flex-col gap-4">{[1,2,3,4].map(i => <div key={i} className="card h-32 shimmer" />)}</div>;
 
-  const { overview = {}, atRiskStudents = [], mentorLoad = [], subjectDoubtCount = {}, ngo } = data || {};
+  const { overview = {}, atRiskStudents = [], mentorLoad = [], pendingVolunteers = [], qualExams = [], subjectDoubtCount = {}, ngo } = data || {};
+  overview.qualExams = qualExams; // pass it to overview so the matrix can easily access it or access directly
+
+  const handleApprove = async (volunteerId) => {
+    try {
+      await api.put(`/users/${volunteerId}/approve`);
+      // Update local state by removing from pending and possibly refetching, 
+      // but simpler to just refetch the dashboard data
+      const r = await api.get('/dashboard/ngo');
+      setData(r.data);
+    } catch (err) {
+      console.error('Failed to approve volunteer', err);
+    }
+  };
 
   const subjectChartData = Object.entries(subjectDoubtCount)
     .sort(([,a],[,b]) => b - a)
@@ -50,6 +75,47 @@ export default function NGODashboard() {
         ))}
       </div>
 
+      {/* Qualification Exam Matrix */}
+      <div className="card border border-brand-200 overflow-hidden" style={{ animation: 'fadeUp 0.4s ease 0.08s forwards', opacity: 0 }}>
+        <div className="bg-brand-50 px-5 py-3 flex items-center justify-between border-b border-brand-100">
+          <div className="flex items-center gap-2">
+            <BookOpen size={18} className="text-brand-600" />
+            <h2 className="font-display font-semibold text-brand-900">Qualification Exam Tracker</h2>
+          </div>
+          <span className="text-xs text-brand-700">Required tests per subject</span>
+        </div>
+        <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {Array.from({ length: 7 }, (_, i) => i + 1).map(cls => {
+            const subjects = getSubjectsForClass(cls);
+            return (
+              <div key={cls} className="bg-surface-50 border border-surface-200 rounded-xl p-3">
+                <h3 className="font-semibold text-sm text-surface-900 border-b border-surface-200 pb-2 mb-2">Class {cls}</h3>
+                <div className="flex flex-col gap-1.5">
+                  {subjects.map(subject => {
+                    const exists = overview.qualExams?.some(e => e.class === cls && e.subject.toLowerCase() === subject.toLowerCase());
+                    return (
+                      <div key={subject} className="flex items-center justify-between px-2 py-1.5 rounded-lg border bg-white border-surface-100">
+                        <span className="text-xs font-medium text-surface-700 truncate mr-2" title={subject}>{subject}</span>
+                        {exists ? (
+                          <span className="badge bg-green-100 text-green-700 text-[10px] flex-shrink-0">✓ Exists</span>
+                        ) : (
+                          <button 
+                            onClick={() => navigate(`/ngo/exams?create=true&type=qualification&class=${cls}&subject=${encodeURIComponent(subject)}`)}
+                            className="bg-amber-100 text-amber-700 hover:bg-amber-200 text-[10px] px-2 py-0.5 rounded-md font-semibold transition-colors flex items-center gap-1 flex-shrink-0"
+                          >
+                            <Plus size={10} /> Create
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
       {/* At-risk alert */}
       {atRiskStudents.length > 0 && (
         <div className="card border border-red-200 overflow-hidden" style={{ animation: 'fadeUp 0.4s ease 0.1s forwards', opacity: 0 }}>
@@ -76,6 +142,75 @@ export default function NGODashboard() {
                     {student.reasons?.map((r, ri) => (
                       <span key={ri} className="text-xs bg-red-50 text-red-600 border border-red-200 px-2 py-0.5 rounded-lg">{r}</span>
                     ))}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Pending Volunteers */}
+      {pendingVolunteers.length > 0 && (
+        <div className="card border border-amber-200 overflow-hidden" style={{ animation: 'fadeUp 0.4s ease 0.12s forwards', opacity: 0 }}>
+          <div className="bg-amber-50 px-5 py-3 flex items-center gap-3 border-b border-amber-100 justify-between">
+            <div className="flex items-center gap-2">
+              <UserCheck size={18} className="text-amber-600" />
+              <h2 className="font-display font-semibold text-amber-900">Pending Volunteer Approvals ({pendingVolunteers.length})</h2>
+            </div>
+          </div>
+          <div className="divide-y divide-surface-50 p-4">
+            {pendingVolunteers.map((pv, i) => (
+              <div key={pv.id} className="py-4 flex flex-col gap-3" style={{ animationDelay: `${i * 0.05}s` }}>
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center text-amber-700 font-bold text-lg">
+                      {pv.name?.[0]?.toUpperCase()}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-surface-900">{pv.name}</p>
+                      <p className="text-xs text-surface-500">{pv.email}</p>
+                    </div>
+                  </div>
+                  <button 
+                    onClick={() => handleApprove(pv.id)}
+                    className="btn-primary py-1.5 px-3 text-sm flex items-center gap-1 bg-green-600 hover:bg-green-700 focus:ring-green-500"
+                  >
+                    <Check size={16} /> Approve
+                  </button>
+                </div>
+
+                <div className="bg-surface-50 rounded-xl p-3 grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-xs font-semibold text-surface-500 mb-1">Teaching Preferences</p>
+                    {pv.teachingPreferences?.length ? (
+                      <div className="flex flex-wrap gap-1">
+                        {pv.teachingPreferences.map(pref => (
+                          <span key={pref.class} className="badge bg-white border border-surface-200 text-surface-600 text-[10px]">
+                            Class {pref.class}: {pref.subjects.join(', ')}
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="text-xs text-red-500">No preferences configured</span>
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold text-surface-500 mb-1">Qualification Status</p>
+                    {pv.examResults?.length ? (
+                      <div className="flex flex-col gap-1">
+                        {pv.examResults.map((res, i) => (
+                          <div key={i} className="flex items-center justify-between text-xs">
+                            <span className="text-surface-600">Class {res.class} {res.subject}</span>
+                            <span className={`font-medium ${res.status === 'passed' ? 'text-green-600' : 'text-red-600'}`}>
+                              {res.percentage}% ({res.status})
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="text-xs text-amber-600">No exams taken yet</span>
+                    )}
                   </div>
                 </div>
               </div>

@@ -77,6 +77,7 @@ export default function App() {
           </Route>
           <Route path="/ngo" element={<ProtectedRoute roles={['ngo_admin']}><AppLayout role="ngo_admin" /></ProtectedRoute>}>
             <Route path="dashboard" element={<NGODashboard />} />
+            <Route path="exams" element={<ExamsPage />} />
             <Route path="leaderboard" element={<Leaderboard />} />
           </Route>
           <Route path="*" element={<Navigate to="/" />} />

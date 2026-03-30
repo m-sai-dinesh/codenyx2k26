@@ -1,7 +1,9 @@
 import { Link } from 'react-router-dom';
 import { GraduationCap } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export default function RegisterStudent() {
+  const { t } = useTranslation();
   const handleGoogleAuth = () => {
     const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
     window.location.href = `${apiBase}/auth/google?role=student`;
@@ -15,12 +17,12 @@ export default function RegisterStudent() {
               <GraduationCap size={28} className="text-brand-600" />
               <span className="font-display font-bold text-2xl text-surface-900 group-hover:text-brand-700 transition-colors">ShikshaSetu</span>
             </Link>
-            <h1 className="font-display font-bold text-3xl text-surface-900 mb-2">Create Student Account</h1>
-            <p className="text-surface-500 text-sm">Join thousands of students getting quality education support</p>
+            <h1 className="font-display font-bold text-3xl text-surface-900 mb-2">{t('Create Student Account')}</h1>
+            <p className="text-surface-500 text-sm">{t('Join thousands of students getting quality education support')}</p>
           </div>
 
           <div className="card p-8">
-            <h2 className="font-display font-semibold text-lg text-surface-800 text-center mb-4">Get Started</h2>
+            <h2 className="font-display font-semibold text-lg text-surface-800 text-center mb-4">{t('Get Started')}</h2>
 
             {/* Google OAuth Button */}
             <button
@@ -33,38 +35,38 @@ export default function RegisterStudent() {
                 <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
                 <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
               </svg>
-              Continue with Google
+              {t('Continue with Google')}
             </button>
 
             <p className="text-xs text-surface-400 text-center mt-4">
-              We'll use your Google account to create your student profile
+              {t("We'll use your Google account to create your student profile")}
             </p>
           </div>
 
           <div className="bg-white rounded-xl p-6 shadow-sm border border-surface-100 mt-6">
-            <h3 className="font-semibold text-surface-800 mb-3">What happens next?</h3>
+            <h3 className="font-semibold text-surface-800 mb-3">{t('What happens next?')}</h3>
             <ul className="space-y-2 text-sm text-surface-600">
               <li className="flex items-start gap-2">
                 <span className="text-brand-500 mt-0.5">1.</span>
-                <span>Sign in securely with your Google account</span>
+                <span>{t('Sign in securely with your Google account')}</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-brand-500 mt-0.5">2.</span>
-                <span>Take a short diagnostic exam to assess your level</span>
+                <span>{t('Take a short diagnostic exam to assess your level')}</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-brand-500 mt-0.5">3.</span>
-                <span>Get matched with a mentor who fits your needs</span>
+                <span>{t('Get matched with a mentor who fits your needs')}</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-brand-500 mt-0.5">4.</span>
-                <span>Start learning with personalized doubt sessions</span>
+                <span>{t('Start learning with personalized doubt sessions')}</span>
               </li>
             </ul>
           </div>
 
           <p className="text-center text-sm text-surface-500 mt-6">
-            Already have an account? <Link to="/login" className="text-brand-600 font-semibold hover:underline">Sign in</Link>
+            {t('Already have an account?')} <Link to="/login" className="text-brand-600 font-semibold hover:underline">{t('Sign in')}</Link>
           </p>
         </div>
     </div>

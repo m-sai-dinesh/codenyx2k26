@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { BookOpen, ExternalLink, GraduationCap } from 'lucide-react';
 
@@ -17,11 +16,10 @@ const TEXTBOOKS = {
 
 export default function TextbooksPage() {
   const { user } = useAuth();
-  const [language, setLanguage] = useState('English');
 
   const isStudent = user?.role === 'student';
-  // Students see all classes but their own is highlighted; volunteers see all
-  const classes = Object.keys(TEXTBOOKS).map(Number);
+  // Students see only their own class; volunteers see all
+  const classes = isStudent && user?.class ? [Number(user?.class)] : Object.keys(TEXTBOOKS).map(Number);
 
   return (
     <div className="space-y-6">
@@ -34,22 +32,6 @@ export default function TextbooksPage() {
           </p>
         </div>
 
-        {/* Language toggle */}
-        <div className="flex items-center gap-1 bg-surface-100 rounded-xl p-1 self-start sm:self-auto">
-          {['English', 'Telugu'].map(lang => (
-            <button
-              key={lang}
-              onClick={() => setLanguage(lang)}
-              className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${
-                language === lang
-                  ? 'bg-white shadow text-brand-700 ring-1 ring-surface-200'
-                  : 'text-surface-500 hover:text-surface-700'
-              }`}
-            >
-              {lang === 'English' ? '🇬🇧 English' : '🅣 Telugu'}
-            </button>
-          ))}
-        </div>
       </div>
 
       {/* Info banner for students */}
@@ -57,47 +39,67 @@ export default function TextbooksPage() {
         <div className="flex items-start gap-3 bg-brand-50 border border-brand-100 rounded-xl px-4 py-3">
           <GraduationCap size={18} className="text-brand-600 mt-0.5 flex-shrink-0" />
           <p className="text-sm text-brand-700">
-            Your class is highlighted. Click any card to open the folder in Google Drive.
+            Displaying textbooks for your current class. Click the card to open the folder in Google Drive.
           </p>
         </div>
       )}
 
       {/* Class grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {classes.map(cls => {
-          const link = TEXTBOOKS[cls][language];
+          const englishLink = TEXTBOOKS[cls]['English'];
+          const teluguLink = TEXTBOOKS[cls]['Telugu'];
           const isMyClass = isStudent && user?.class === cls;
 
           return (
-            <a
+            <div
               key={cls}
-              href={link}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`group relative flex flex-col items-center justify-center gap-3 rounded-2xl border p-5 text-center transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 cursor-pointer ${
+              className={`group relative flex flex-col gap-4 rounded-2xl border p-5 transition-all duration-200 hover:shadow-md ${
                 isMyClass
                   ? 'border-brand-400 bg-brand-50 shadow-sm ring-2 ring-brand-200'
                   : 'border-surface-200 bg-white hover:border-brand-300'
               }`}
             >
               {isMyClass && (
-                <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-brand-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap">
+                <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-brand-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap z-10">
                   My Class
                 </span>
               )}
-              <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                isMyClass ? 'bg-brand-600' : 'bg-surface-100 group-hover:bg-brand-100'
-              } transition-colors`}>
-                <BookOpen size={22} className={isMyClass ? 'text-white' : 'text-surface-500 group-hover:text-brand-600'} />
+              <div className="flex items-center gap-3">
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${
+                  isMyClass ? 'bg-brand-600' : 'bg-surface-100 group-hover:bg-brand-100'
+                } transition-colors`}>
+                  <BookOpen size={22} className={isMyClass ? 'text-white' : 'text-surface-500 group-hover:text-brand-600'} />
+                </div>
+                <div>
+                  <p className={`font-display font-bold text-xl leading-none ${isMyClass ? 'text-brand-700' : 'text-surface-900'}`}>
+                    Class {cls}
+                  </p>
+                  <p className="text-sm text-surface-500 mt-1">Textbooks</p>
+                </div>
               </div>
-              <div>
-                <p className={`font-display font-bold text-lg leading-none ${isMyClass ? 'text-brand-700' : 'text-surface-900'}`}>
-                  {cls}
-                </p>
-                <p className="text-xs text-surface-400 mt-0.5">Class {cls}</p>
+              
+              <div className="flex flex-col gap-2 mt-2">
+                <a
+                  href={englishLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-between w-full p-3 rounded-lg bg-surface-50 hover:bg-surface-100 border border-surface-200 hover:border-surface-300 transition-colors group/link"
+                >
+                  <span className="text-sm font-semibold text-surface-700">🇬🇧 English Medium</span>
+                  <ExternalLink size={16} className="text-surface-400 group-hover/link:text-brand-600 transition-colors" />
+                </a>
+                <a
+                  href={teluguLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-between w-full p-3 rounded-lg bg-surface-50 hover:bg-surface-100 border border-surface-200 hover:border-surface-300 transition-colors group/link"
+                >
+                  <span className="text-sm font-semibold text-surface-700">🅣 Telugu Medium</span>
+                  <ExternalLink size={16} className="text-surface-400 group-hover/link:text-brand-600 transition-colors" />
+                </a>
               </div>
-              <ExternalLink size={13} className={`${isMyClass ? 'text-brand-400' : 'text-surface-300 group-hover:text-brand-400'} transition-colors`} />
-            </a>
+            </div>
           );
         })}
       </div>

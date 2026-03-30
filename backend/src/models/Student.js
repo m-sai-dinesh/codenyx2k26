@@ -31,7 +31,7 @@ const studentSchema = new mongoose.Schema({
 
 // Virtual attendance %
 studentSchema.virtual('attendancePercentage').get(function () {
-  if (this.totalSessions === 0) return 100;
+  if (this.totalSessions === 0) return 0;
   return Math.round((this.attendanceCount / this.totalSessions) * 100);
 });
 

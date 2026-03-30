@@ -1,9 +1,10 @@
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   LayoutDashboard, MessageCircleQuestion, Calendar, BookOpen,
-  Trophy, BookMarked, LogOut, Menu, X, GraduationCap, Shield, ChevronRight
+  Trophy, BookMarked, LogOut, Menu, X, GraduationCap, Shield, ChevronRight, Globe
 } from 'lucide-react';
 
 const navConfigs = {
@@ -26,6 +27,7 @@ const navConfigs = {
   ],
   ngo_admin: [
     { to: '/ngo/dashboard', icon: LayoutDashboard, label: 'Overview' },
+    { to: '/ngo/exams', icon: BookOpen, label: 'Exams' },
     { to: '/ngo/leaderboard', icon: Trophy, label: 'Leaderboard' },
   ],
 };
@@ -48,9 +50,19 @@ export default function AppLayout({ role }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { t, i18n } = useTranslation();
+
+  const handleLanguageChange = (e) => {
+    i18n.changeLanguage(e.target.value);
+  };
 
   const navKey = user?.role === 'peer_mentor' ? 'volunteer' : role;
-  const navItems = navConfigs[navKey] || [];
+  let navItems = navConfigs[navKey] || [];
+
+  // Lockout all tabs except dashboard if volunteer is pending NGO approval
+  if ((user?.role === 'volunteer' || user?.role === 'peer_mentor') && user?.isApproved === false) {
+    navItems = navItems.filter(item => item.to.includes('dashboard'));
+  }
 
   const handleLogout = () => {
     logout();
@@ -81,7 +93,7 @@ export default function AppLayout({ role }) {
           <div className="flex items-center gap-3">
             <div>
               <p className="font-display font-bold text-lg text-surface-900 leading-none tracking-tight">ShikshaSetu</p>
-              <p className="text-xs text-brand-600 font-medium mt-0.5">Learning Platform</p>
+              <p className="text-xs text-brand-600 font-medium mt-0.5">{t('Learning Platform')}</p>
             </div>
           </div>
         </div>
@@ -95,7 +107,7 @@ export default function AppLayout({ role }) {
             <div className="min-w-0 flex-1">
               <p className="font-semibold text-sm text-surface-900 truncate">{user?.name}</p>
               <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${roleColor[user?.role] || 'bg-gray-100 text-gray-600'}`}>
-                {roleLabel[user?.role] || user?.role}
+                {t(roleLabel[user?.role] || user?.role)}
               </span>
             </div>
           </div>
@@ -113,17 +125,31 @@ export default function AppLayout({ role }) {
               }
             >
               <Icon size={18} />
-              <span className="flex-1">{label}</span>
+              <span className="flex-1">{t(label)}</span>
               <ChevronRight size={14} className="opacity-30" />
             </NavLink>
           ))}
         </nav>
 
-        {/* Logout */}
-        <div className="px-3 py-4 border-t border-surface-100">
-          <button onClick={handleLogout} className="nav-link w-full text-red-500 hover:bg-red-50 hover:text-red-600">
+        <div className="px-3 py-4 border-t border-surface-100 flex flex-col gap-2">
+          {/* Language Switcher */}
+          <div className="flex items-center gap-2 px-3 py-2 text-surface-600 bg-surface-50 rounded-lg">
+            <Globe size={18} />
+            <select 
+              value={i18n.language} 
+              onChange={handleLanguageChange}
+              className="w-full bg-transparent border-none text-sm font-medium focus:ring-0 cursor-pointer outline-none appearance-none"
+            >
+              <option value="english">English</option>
+              <option value="hindi">हिंदी</option>
+              <option value="telugu">తెలుగు</option>
+            </select>
+          </div>
+          
+          {/* Logout */}
+          <button onClick={handleLogout} className="nav-link w-full text-red-500 hover:bg-red-50 hover:text-red-600 mt-1">
             <LogOut size={18} />
-            <span>Log out</span>
+            <span>{t('Log out')}</span>
           </button>
         </div>
       </aside>

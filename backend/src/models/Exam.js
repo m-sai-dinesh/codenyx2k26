@@ -9,14 +9,14 @@ const questionSchema = new mongoose.Schema({
 });
 
 const examSchema = new mongoose.Schema({
-  volunteerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  creatorId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   ngoId: { type: mongoose.Schema.Types.ObjectId, ref: 'NGO' },
   title: { type: String, required: true },
   subject: { type: String, required: true },
   class: { type: Number, required: true },
   type: {
     type: String,
-    enum: ['diagnostic', 'weekly', 'monthly'],
+    enum: ['diagnostic', 'weekly', 'monthly', 'qualification'],
     required: true
   },
   questions: [questionSchema],

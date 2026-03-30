@@ -5,8 +5,8 @@ const { Exam, ExamResult } = require('../models/Exam');
 const Student = require('../models/Student');
 const { detectPersistentWeakTopics } = require('../utils/atRiskDetector');
 
-// POST /api/exams — volunteer creates exam
-router.post('/', protect, authorize('volunteer'), async (req, res) => {
+// POST /api/exams — volunteer or ngo_admin creates exam
+router.post('/', protect, authorize('volunteer', 'ngo_admin'), async (req, res) => {
   try {
     if (!req.body.questions || req.body.questions.length === 0) {
       return res.status(400).json({ error: 'Questions array is required and cannot be empty' });
@@ -14,7 +14,7 @@ router.post('/', protect, authorize('volunteer'), async (req, res) => {
     
     const totalMarks = req.body.questions.reduce((sum, q) => sum + (q.marks || 1), 0);
     const exam = await Exam.create({
-      volunteerId: req.user._id,
+      creatorId: req.user._id,
       ngoId: req.user.ngoId,
       totalMarks,
       ...req.body
@@ -22,6 +22,41 @@ router.post('/', protect, authorize('volunteer'), async (req, res) => {
     res.status(201).json(exam);
   } catch (err) {
     res.status(400).json({ error: err.message });
+  }
+});
+
+// GET /api/exams/qualification/required — volunteer gets qualification exams based on teachingPreferences
+router.get('/qualification/required', protect, authorize('volunteer'), async (req, res) => {
+  try {
+    const volunteer = await require('../models/Volunteer').findOne({ userId: req.user._id });
+    if (!volunteer) return res.status(404).json({ error: 'Volunteer not found' });
+
+    // Build list of required exams
+    // For every {class, subjects: []} in teachingPreferences, find exams with type: qualification, class, subject
+    const requiredExams = [];
+    const preferences = volunteer.teachingPreferences || [];
+    
+    const allQualExams = await Exam.find({ type: 'qualification', ngoId: req.user.ngoId, isActive: true });
+    const myResults = await ExamResult.find({ studentId: req.user._id }).populate('examId');
+
+    for (const pref of preferences) {
+      for (const subject of pref.subjects) {
+        // Find if ngo admin created a qualification exam for this
+        const exam = allQualExams.find(e => e.class === pref.class && e.subject.toLowerCase() === subject.toLowerCase());
+        if (exam) {
+          const result = myResults.find(r => r.examId && r.examId._id.toString() === exam._id.toString());
+          requiredExams.push({
+            exam,
+            status: result ? (result.percentage >= 60 ? 'passed' : 'failed') : 'pending',
+            score: result ? result.percentage : null
+          });
+        }
+      }
+    }
+
+    res.json(requiredExams);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 

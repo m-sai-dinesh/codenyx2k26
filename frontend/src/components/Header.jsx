@@ -1,12 +1,18 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { GraduationCap, ArrowRight, Menu, X, BookOpen } from 'lucide-react';
+import { GraduationCap, ArrowRight, Menu, X, BookOpen, Globe } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 export default function Header({ showAuth = true, transparent = false }) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { t, i18n } = useTranslation();
+
+  const handleLanguageChange = (e) => {
+    i18n.changeLanguage(e.target.value);
+  };
 
   const headerClasses = transparent 
     ? 'sticky top-0 z-50 bg-gradient-to-r from-white/95 to-white/80 backdrop-blur-xl border-b border-brand-100/50 px-4 sm:px-6 py-3'
@@ -30,25 +36,40 @@ export default function Header({ showAuth = true, transparent = false }) {
               {/* Desktop Navigation */}
               <div className="hidden sm:flex items-center gap-3">
                 {user ? (
-                  <button 
-                    onClick={() => navigate('/dashboard')} 
-                    className="btn-primary text-sm px-6 py-2.5 shadow-sm hover:shadow-md transition-shadow"
-                  >
-                    Dashboard <ArrowRight size={16} />
-                  </button>
+                  <>
+                    <div className="flex items-center gap-1.5 mr-2">
+                      <Globe size={16} className="text-surface-500" />
+                      <select 
+                        value={i18n.language} 
+                        onChange={handleLanguageChange}
+                        className="bg-transparent border-none text-surface-700 text-sm font-medium focus:ring-0 cursor-pointer outline-none appearance-none pr-4"
+                        style={{ backgroundImage: 'none' }}
+                      >
+                        <option value="english">English</option>
+                        <option value="hindi">हिंदी</option>
+                        <option value="telugu">తెలుగు</option>
+                      </select>
+                    </div>
+                    <button 
+                      onClick={() => navigate('/dashboard')} 
+                      className="btn-primary text-sm px-6 py-2.5 shadow-sm hover:shadow-md transition-shadow"
+                    >
+                      {t('Dashboard')} <ArrowRight size={16} />
+                    </button>
+                  </>
                 ) : (
                   <>
                     <button 
                       onClick={() => navigate('/login')} 
                       className="btn-ghost text-sm font-medium"
                     >
-                      Sign in
+                      {t('Sign in')}
                     </button>
                     <button 
                       onClick={() => navigate('/register/student')} 
                       className="btn-primary text-sm px-6 py-2.5 shadow-sm hover:shadow-md transition-shadow"
                     >
-                      Get Started <ArrowRight size={16} />
+                      {t('Get Started')} <ArrowRight size={16} />
                     </button>
                   </>
                 )}
@@ -76,15 +97,29 @@ export default function Header({ showAuth = true, transparent = false }) {
           <div className="relative bg-white border-b border-surface-200 px-4 py-4 shadow-lg">
             <div className="flex flex-col gap-3">
               {user ? (
-                <button 
-                  onClick={() => {
-                    navigate('/dashboard');
-                    setMobileMenuOpen(false);
-                  }} 
-                  className="btn-primary w-full justify-center py-3 shadow-sm"
-                >
-                  Dashboard <ArrowRight size={16} />
-                </button>
+                <>
+                  <div className="flex items-center gap-2 px-4 py-2 bg-surface-50 rounded-lg mb-2">
+                    <Globe size={18} className="text-surface-500" />
+                    <select 
+                      value={i18n.language} 
+                      onChange={handleLanguageChange}
+                      className="w-full bg-transparent border-none text-surface-700 font-medium focus:ring-0 cursor-pointer outline-none"
+                    >
+                      <option value="english">English</option>
+                      <option value="hindi">हिंदी</option>
+                      <option value="telugu">తెలుగు</option>
+                    </select>
+                  </div>
+                  <button 
+                    onClick={() => {
+                      navigate('/dashboard');
+                      setMobileMenuOpen(false);
+                    }} 
+                    className="btn-primary w-full justify-center py-3 shadow-sm"
+                  >
+                    {t('Dashboard')} <ArrowRight size={16} />
+                  </button>
+                </>
               ) : (
                 <>
                   <button 
@@ -94,7 +129,7 @@ export default function Header({ showAuth = true, transparent = false }) {
                     }} 
                     className="btn-secondary w-full justify-center py-3"
                   >
-                    Sign in
+                    {t('Sign in')}
                   </button>
                   <button 
                     onClick={() => {
@@ -103,7 +138,7 @@ export default function Header({ showAuth = true, transparent = false }) {
                     }} 
                     className="btn-primary w-full justify-center py-3 shadow-sm"
                   >
-                    Get Started <ArrowRight size={16} />
+                    {t('Get Started')} <ArrowRight size={16} />
                   </button>
                 </>
               )}

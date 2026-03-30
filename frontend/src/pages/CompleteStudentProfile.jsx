@@ -4,6 +4,7 @@ import { GraduationCap } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../api/client';
 import { useAuth } from '../context/AuthContext';
+import { useTranslation } from 'react-i18next';
 
 const CLASSES = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 const DISTRICTS = [
@@ -26,6 +27,7 @@ export default function CompleteStudentProfile() {
   const navigate = useNavigate();
   const { user, loginWithToken } = useAuth();
   const [loading, setLoading] = useState(false);
+  const { t } = useTranslation();
   const [form, setForm] = useState({
     name: user?.name || '',
     class: '',
@@ -38,11 +40,11 @@ export default function CompleteStudentProfile() {
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
 
   const handleSubmit = async () => {
-    if (!form.name.trim()) return toast.error('Please enter your name');
-    if (!form.class) return toast.error('Please select your class');
-    if (!form.age || form.age < 5 || form.age > 25) return toast.error('Please enter a valid age');
-    if (!form.schoolName.trim()) return toast.error('Please enter your school name');
-    if (!form.district) return toast.error('Please select your district');
+    if (!form.name.trim()) return toast.error(t('Please enter your name'));
+    if (!form.class) return toast.error(t('Please select your class'));
+    if (!form.age || form.age < 5 || form.age > 25) return toast.error(t('Please enter a valid age'));
+    if (!form.schoolName.trim()) return toast.error(t('Please enter your school name'));
+    if (!form.district) return toast.error(t('Please select your district'));
 
     setLoading(true);
     try {
@@ -59,10 +61,10 @@ export default function CompleteStudentProfile() {
       const token = localStorage.getItem('edu_token');
       if (token) await loginWithToken(token);
 
-      toast.success('Profile complete! Ready for your diagnostic exam.');
+      toast.success(t('Profile complete! Ready for your diagnostic exam.'));
       navigate('/student/exams');
     } catch (err) {
-      toast.error(err.response?.data?.error || 'Failed to save profile. Please try again.');
+      toast.error(err.response?.data?.error || t('Failed to save profile. Please try again.'));
     } finally {
       setLoading(false);
     }
@@ -77,18 +79,18 @@ export default function CompleteStudentProfile() {
             <GraduationCap size={28} className="text-brand-600" />
             <span className="font-display font-bold text-2xl text-surface-900">ShikshaSetu</span>
           </div>
-          <h1 className="font-display font-bold text-3xl text-surface-900 mb-2">Complete Your Profile</h1>
-          <p className="text-surface-500 text-sm">Tell us about yourself so we can find the right mentor for you</p>
+          <h1 className="font-display font-bold text-3xl text-surface-900 mb-2">{t('Complete Your Profile')}</h1>
+          <p className="text-surface-500 text-sm">{t('Tell us about yourself so we can find the right mentor for you')}</p>
         </div>
 
         <div className="card p-8 space-y-5">
 
           {/* Name */}
           <div>
-            <label className="label">Your Name</label>
+            <label className="label">{t('Your Name')}</label>
             <input
               className="input"
-              placeholder="Full name"
+              placeholder={t('Full name')}
               value={form.name}
               onChange={e => set('name', e.target.value)}
             />
@@ -97,24 +99,24 @@ export default function CompleteStudentProfile() {
           {/* Class + Age row */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="label">Class / Grade</label>
+              <label className="label">{t('Class / Grade')}</label>
               <select
                 className="input"
                 value={form.class}
                 onChange={e => set('class', e.target.value)}
               >
-                <option value="">Select class</option>
+                <option value="">{t('Select class')}</option>
                 {CLASSES.map(c => (
-                  <option key={c} value={c}>Class {c}</option>
+                  <option key={c} value={c}>{t('Class')} {c}</option>
                 ))}
               </select>
             </div>
             <div>
-              <label className="label">Age</label>
+              <label className="label">{t('Age')}</label>
               <input
                 className="input"
                 type="number"
-                placeholder="Your age"
+                placeholder={t('Your age')}
                 min={5} max={25}
                 value={form.age}
                 onChange={e => set('age', e.target.value)}
@@ -124,10 +126,10 @@ export default function CompleteStudentProfile() {
 
           {/* School */}
           <div>
-            <label className="label">School Name</label>
+            <label className="label">{t('School Name')}</label>
             <input
               className="input"
-              placeholder="e.g. ZPHS Uppal"
+              placeholder={t('e.g. ZPHS Uppal')}
               value={form.schoolName}
               onChange={e => set('schoolName', e.target.value)}
             />
@@ -135,13 +137,13 @@ export default function CompleteStudentProfile() {
 
           {/* District */}
           <div>
-            <label className="label">District</label>
+            <label className="label">{t('District')}</label>
             <select
               className="input"
               value={form.district}
               onChange={e => set('district', e.target.value)}
             >
-              <option value="">Select district</option>
+              <option value="">{t('Select district')}</option>
               {DISTRICTS.map(d => (
                 <option key={d} value={d}>{d}</option>
               ))}
@@ -150,7 +152,7 @@ export default function CompleteStudentProfile() {
 
           {/* Language */}
           <div>
-            <label className="label">Preferred Language</label>
+            <label className="label">{t('Preferred Language')}</label>
             <div className="flex gap-2 flex-wrap">
               {LANGUAGES.map(l => (
                 <button
@@ -170,7 +172,7 @@ export default function CompleteStudentProfile() {
                     borderColor: form.language === l.value ? 'var(--brand-600)' : 'var(--surface-200)',
                   }}
                 >
-                  {l.label}
+                  {t(l.label)}
                 </button>
               ))}
             </div>
@@ -182,25 +184,25 @@ export default function CompleteStudentProfile() {
             className="btn-primary w-full justify-center mt-2"
             style={{ padding: '13px', fontSize: '15px' }}
           >
-            {loading ? 'Saving...' : 'Complete Profile & Continue →'}
+            {loading ? t('Saving...') : t('Complete Profile & Continue →')}
           </button>
         </div>
 
         {/* What happens next */}
         <div className="bg-white rounded-xl p-6 shadow-sm border border-surface-100 mt-6">
-          <h3 className="font-semibold text-surface-800 mb-3">What happens next?</h3>
+          <h3 className="font-semibold text-surface-800 mb-3">{t('What happens next?')}</h3>
           <ul className="space-y-2 text-sm text-surface-600">
             <li className="flex items-start gap-2">
               <span className="text-brand-500 mt-0.5">1.</span>
-              <span>Take a short diagnostic exam to assess your current level</span>
+              <span>{t('Take a short diagnostic exam to assess your current level')}</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="text-brand-500 mt-0.5">2.</span>
-              <span>Get matched with a mentor who fits your subject needs</span>
+              <span>{t('Get matched with a mentor who fits your subject needs')}</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="text-brand-500 mt-0.5">3.</span>
-              <span>Start personalized doubt sessions and track your progress</span>
+              <span>{t('Start personalized doubt sessions and track your progress')}</span>
             </li>
           </ul>
         </div>

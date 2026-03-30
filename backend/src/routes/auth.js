@@ -40,7 +40,7 @@ router.post('/register/student', async (req, res) => {
 // POST /api/auth/register/volunteer
 router.post('/register/volunteer', async (req, res) => {
   try {
-    const { name, email, password, highestDegree, subjects, teachingExperience, grades, language, ngoId } = req.body;
+    const { name, email, password, highestDegree, teachingPreferences, teachingExperience, language, ngoId } = req.body;
 
     // Use findOne with lean for faster check, then rely on unique index for race condition protection
     const exists = await User.findOne({ email }).lean();
@@ -48,7 +48,7 @@ router.post('/register/volunteer', async (req, res) => {
 
     try {
       const user = await User.create({ name, email, password, role: 'volunteer', ngoId, language });
-      await Volunteer.create({ userId: user._id, ngoId, highestDegree, subjects, teachingExperience, grades });
+      await Volunteer.create({ userId: user._id, ngoId, highestDegree, teachingPreferences, teachingExperience });
       res.status(201).json({ token: generateToken(user._id), user, message: 'Registration successful. Please complete qualification test.' });
     } catch (createError) {
       // Handle duplicate key error from MongoDB unique index
@@ -139,7 +139,21 @@ router.post('/login', async (req, res) => {
     if (!(await user.matchPassword(password))) {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
-    res.json({ token: generateToken(user._id), user });
+    
+    let userObj = user.toJSON();
+    if (userObj.role === 'student') {
+      const student = await Student.findOne({ userId: userObj._id }).lean();
+      if (student && student.class) {
+        userObj.class = student.class;
+      }
+    } else if (userObj.role === 'volunteer') {
+      const volunteer = await Volunteer.findOne({ userId: userObj._id }).lean();
+      if (volunteer) userObj.isApproved = volunteer.isApproved;
+    } else if (userObj.role === 'peer_mentor') {
+      const pm = await require('../models/PeerMentor').findOne({ userId: userObj._id }).lean();
+      if (pm) userObj.isApproved = pm.isApproved;
+    }
+    res.json({ token: generateToken(user._id), user: userObj });
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
@@ -147,7 +161,20 @@ router.post('/login', async (req, res) => {
 
 // GET /api/auth/me
 router.get('/me', protect, async (req, res) => {
-  res.json({ user: req.user });
+  let userObj = req.user.toJSON();
+  if (userObj.role === 'student') {
+    const student = await Student.findOne({ userId: userObj._id }).lean();
+    if (student && student.class) {
+      userObj.class = student.class;
+    }
+  } else if (userObj.role === 'volunteer') {
+    const volunteer = await Volunteer.findOne({ userId: userObj._id }).lean();
+    if (volunteer) userObj.isApproved = volunteer.isApproved;
+  } else if (userObj.role === 'peer_mentor') {
+    const pm = await require('../models/PeerMentor').findOne({ userId: userObj._id }).lean();
+    if (pm) userObj.isApproved = pm.isApproved;
+  }
+  res.json({ user: userObj });
 });
 
 // Google OAuth Routes
@@ -200,8 +227,7 @@ router.get('/google/callback',
             profilePicture,
             highestDegree: '',
             teachingExperience: 0,
-            subjects: [],
-            grades: [],
+            teachingPreferences: [],
           });
         }
       } else if (user.authProvider !== 'google') {
