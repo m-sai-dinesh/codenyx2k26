@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const sessionSchema = new mongoose.Schema({
   volunteerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  ngoId: { type: mongoose.Schema.Types.ObjectId, ref: 'NGO', required: true },
+  ngoId: { type: mongoose.Schema.Types.ObjectId, ref: 'NGO' },
   subject: { type: String, required: true },
   topic: { type: String, required: true },
   class: { type: Number, required: true },

@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const progressSchema = new mongoose.Schema({
   studentId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  ngoId: { type: mongoose.Schema.Types.ObjectId, ref: 'NGO', required: true },
+  ngoId: { type: mongoose.Schema.Types.ObjectId, ref: 'NGO' },
   subject: { type: String, required: true },
   week: { type: Number, required: true }, // week number since joining
   resolvedDoubts: { type: Number, default: 0 },
@@ -22,7 +22,7 @@ const progressSchema = new mongoose.Schema({
 // Weekly check-in model
 const weeklyCheckinSchema = new mongoose.Schema({
   studentId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  ngoId: { type: mongoose.Schema.Types.ObjectId, ref: 'NGO', required: true },
+  ngoId: { type: mongoose.Schema.Types.ObjectId, ref: 'NGO' },
   week: { type: Number, required: true },
   subjectConfidence: { type: Map, of: Number, default: {} }, // { math: 4, science: 2 }
   mentorRating: { type: Boolean }, // was mentor responsive?
@@ -34,7 +34,7 @@ const MentorReview = mongoose.model('MentorReview', new mongoose.Schema({
   mentorId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   studentId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   sessionId: { type: mongoose.Schema.Types.ObjectId, ref: 'Session' },
-  ngoId: { type: mongoose.Schema.Types.ObjectId, ref: 'NGO', required: true },
+  ngoId: { type: mongoose.Schema.Types.ObjectId, ref: 'NGO' },
   rating: { type: Number, min: 1, max: 5, required: true },
   comment: { type: String }, // anonymous
   createdAt: { type: Date, default: Date.now }

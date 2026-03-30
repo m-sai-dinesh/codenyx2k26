@@ -15,7 +15,7 @@ export default function NGODashboard() {
 
   if (loading) return <div className="flex flex-col gap-4">{[1,2,3,4].map(i => <div key={i} className="card h-32 shimmer" />)}</div>;
 
-  const { overview = {}, atRiskStudents = [], mentorLoad = [], subjectDoubtCount = {} } = data || {};
+  const { overview = {}, atRiskStudents = [], mentorLoad = [], subjectDoubtCount = {}, ngo } = data || {};
 
   const subjectChartData = Object.entries(subjectDoubtCount)
     .sort(([,a],[,b]) => b - a)
@@ -24,8 +24,12 @@ export default function NGODashboard() {
   return (
     <div className="flex flex-col gap-6">
       <div style={{ animation: 'fadeUp 0.4s ease forwards' }}>
-        <h1 className="font-display font-bold text-2xl text-surface-900">NGO Dashboard</h1>
-        <p className="text-surface-500 text-sm mt-1">Real-time overview of your program</p>
+        <h1 className="font-display font-bold text-2xl text-surface-900">
+          {ngo ? ngo.name : 'NGO Dashboard'}
+        </h1>
+        <p className="text-surface-500 text-sm mt-1">
+          {ngo ? `${ngo.district} · ${ngo.contactEmail}` : 'Real-time overview of your program'}
+        </p>
       </div>
 
       {/* Overview stats */}

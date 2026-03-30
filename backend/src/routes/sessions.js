@@ -22,13 +22,11 @@ router.post('/', protect, authorize('volunteer', 'peer_mentor'), async (req, res
 router.get('/my', protect, async (req, res) => {
   try {
     let sessions;
-    if (req.user.role === 'volunteer') {
+    if (req.user.role === 'volunteer' || req.user.role === 'peer_mentor') {
       sessions = await Session.find({ volunteerId: req.user._id }).sort({ scheduledDate: -1 });
     } else {
-      const student = await Student.findOne({ userId: req.user._id });
       sessions = await Session.find({
-        ngoId: req.user.ngoId,
-        class: student?.class,
+        'attendance.studentId': req.user._id,
       }).sort({ scheduledDate: -1 });
     }
     res.json(sessions);

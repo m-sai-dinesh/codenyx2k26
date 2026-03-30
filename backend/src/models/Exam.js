@@ -10,7 +10,7 @@ const questionSchema = new mongoose.Schema({
 
 const examSchema = new mongoose.Schema({
   volunteerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  ngoId: { type: mongoose.Schema.Types.ObjectId, ref: 'NGO', required: true },
+  ngoId: { type: mongoose.Schema.Types.ObjectId, ref: 'NGO' },
   title: { type: String, required: true },
   subject: { type: String, required: true },
   class: { type: Number, required: true },
@@ -30,7 +30,7 @@ const examSchema = new mongoose.Schema({
 const examResultSchema = new mongoose.Schema({
   examId: { type: mongoose.Schema.Types.ObjectId, ref: 'Exam', required: true },
   studentId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  ngoId: { type: mongoose.Schema.Types.ObjectId, ref: 'NGO', required: true },
+  ngoId: { type: mongoose.Schema.Types.ObjectId, ref: 'NGO' },
   answers: [{ questionIndex: Number, selectedOption: Number }],
   score: { type: Number, required: true },
   totalMarks: { type: Number, required: true },

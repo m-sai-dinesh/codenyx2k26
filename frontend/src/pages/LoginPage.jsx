@@ -112,6 +112,7 @@ export default function LoginPage() {
                     <LogIn size={20} className="text-brand-600" />
                   </div>
                 </button>
+
               </div>
 
               <div className="pt-6 border-t border-surface-100 text-center">

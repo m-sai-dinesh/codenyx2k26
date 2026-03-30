@@ -123,7 +123,10 @@ router.put('/:id/reopen', protect, authorize('student'), async (req, res) => {
 router.put('/:id/escalate', protect, authorize('peer_mentor'), async (req, res) => {
   try {
     const doubt = await Doubt.findById(req.params.id);
+    if (!doubt) return res.status(404).json({ error: 'Doubt not found' });
+
     const pm = await PeerMentor.findOne({ userId: req.user._id });
+    if (!pm) return res.status(404).json({ error: 'Peer mentor profile not found' });
 
     await doubt.updateOne({
       escalatedFrom: req.user._id,

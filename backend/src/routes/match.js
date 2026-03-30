@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { protect, authorize } = require('../middleware/auth');
 const { findBestMentor, evaluateBadges } = require('../utils/matchingEngine');
+const User = require('../models/User');
 const Student = require('../models/Student');
 const Volunteer = require('../models/Volunteer');
 const PeerMentor = require('../models/PeerMentor');
@@ -43,7 +44,8 @@ router.post('/run', protect, authorize('student'), async (req, res) => {
 // POST /api/match/evaluate-badges/:mentorId
 router.post('/evaluate-badges/:mentorId', protect, authorize('ngo_admin'), async (req, res) => {
   try {
-    const user = await require('../models/User').findById(req.params.mentorId);
+    const user = await User.findById(req.params.mentorId);
+    if (!user) return res.status(404).json({ error: 'Mentor not found' });
     await evaluateBadges(req.params.mentorId, user.role);
     res.json({ message: 'Badges evaluated' });
   } catch (err) {

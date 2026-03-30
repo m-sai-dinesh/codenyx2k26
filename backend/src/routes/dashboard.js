@@ -6,6 +6,7 @@ const Volunteer = require('../models/Volunteer');
 const PeerMentor = require('../models/PeerMentor');
 const Session = require('../models/Session');
 const Doubt = require('../models/Doubt');
+const { NGO } = require('../models/Book');
 const { ExamResult } = require('../models/Exam');
 const { evaluateAtRisk } = require('../utils/atRiskDetector');
 
@@ -14,12 +15,17 @@ router.get('/ngo', protect, authorize('ngo_admin'), async (req, res) => {
   try {
     const ngoId = req.user.ngoId;
 
-    const [students, volunteers, peerMentors, sessions, doubts] = await Promise.all([
-      Student.find({ ngoId }).populate('userId', 'name email'),
-      Volunteer.find({ ngoId }).populate('userId', 'name email'),
-      PeerMentor.find({ ngoId }).populate('userId', 'name email'),
-      Session.find({ ngoId, status: 'completed' }),
-      Doubt.find({ ngoId })
+    // Build filter: if admin has no ngoId assigned, show all data (super-admin view)
+    const filter = ngoId ? { ngoId } : {};
+    const sessionFilter = ngoId ? { ngoId, status: 'completed' } : { status: 'completed' };
+
+    const [students, volunteers, peerMentors, sessions, doubts, ngo] = await Promise.all([
+      Student.find(filter).populate('userId', 'name email'),
+      Volunteer.find(filter).populate('userId', 'name email'),
+      PeerMentor.find(filter).populate('userId', 'name email'),
+      Session.find(sessionFilter),
+      Doubt.find(filter),
+      ngoId ? NGO.findById(ngoId) : Promise.resolve(null),
     ]);
 
     // At-risk students
@@ -44,6 +50,7 @@ router.get('/ngo', protect, authorize('ngo_admin'), async (req, res) => {
     });
 
     res.json({
+      ngo: ngo ? { id: ngo._id, name: ngo.name, district: ngo.district, contactEmail: ngo.contactEmail } : null,
       overview: {
         totalStudents: students.length,
         totalVolunteers: volunteers.length,

@@ -29,11 +29,10 @@ router.post('/', protect, authorize('volunteer'), async (req, res) => {
 router.get('/active', protect, authorize('student'), async (req, res) => {
   try {
     const student = await Student.findOne({ userId: req.user._id });
-    const exams = await Exam.find({
-      ngoId: req.user.ngoId,
-      class: student.class,
-      isActive: true
-    });
+    const filter = { isActive: true };
+    if (req.user.ngoId) filter.ngoId = req.user.ngoId;
+    if (student?.class) filter.class = student.class;
+    const exams = await Exam.find(filter);
     res.json(exams);
   } catch (err) {
     res.status(500).json({ error: err.message });

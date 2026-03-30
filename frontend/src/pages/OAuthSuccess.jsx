@@ -27,8 +27,8 @@ export default function OAuthSuccess() {
             toast.success('Welcome! Please complete your volunteer profile.');
             navigate('/complete-volunteer-profile');
           } else if (role === 'student') {
-            toast.success('Account created! Time to take your diagnostic exam.');
-            navigate('/student/exams');
+            toast.success('Account created! Tell us a bit about yourself.');
+            navigate('/complete-student-profile');
           } else {
             navigate('/dashboard');
           }

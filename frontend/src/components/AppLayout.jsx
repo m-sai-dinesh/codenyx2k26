@@ -12,6 +12,7 @@ const navConfigs = {
     { to: '/student/doubts', icon: MessageCircleQuestion, label: 'My Doubts' },
     { to: '/student/sessions', icon: Calendar, label: 'Sessions' },
     { to: '/student/exams', icon: BookOpen, label: 'Exams' },
+    { to: '/student/textbooks', icon: GraduationCap, label: 'Textbooks' },
     { to: '/student/books', icon: BookMarked, label: 'Book Exchange' },
     { to: '/student/leaderboard', icon: Trophy, label: 'Leaderboard' },
   ],
@@ -20,6 +21,7 @@ const navConfigs = {
     { to: '/volunteer/doubts', icon: MessageCircleQuestion, label: 'Doubts Queue' },
     { to: '/volunteer/sessions', icon: Calendar, label: 'Sessions' },
     { to: '/volunteer/exams', icon: BookOpen, label: 'Exams' },
+    { to: '/volunteer/textbooks', icon: GraduationCap, label: 'Textbooks' },
     { to: '/volunteer/leaderboard', icon: Trophy, label: 'Leaderboard' },
   ],
   ngo_admin: [

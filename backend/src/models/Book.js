@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const bookSchema = new mongoose.Schema({
   donorId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  ngoId: { type: mongoose.Schema.Types.ObjectId, ref: 'NGO', required: true },
+  ngoId: { type: mongoose.Schema.Types.ObjectId, ref: 'NGO' },
   title: { type: String, required: true },
   class: { type: Number, required: true },
   subject: { type: String, required: true },

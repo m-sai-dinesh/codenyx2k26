@@ -6,6 +6,7 @@ import LoginPage from './pages/LoginPage';
 import RegisterStudent from './pages/RegisterStudent';
 import RegisterVolunteer from './pages/RegisterVolunteer';
 import CompleteVolunteerProfile from './pages/CompleteVolunteerProfile';
+import CompleteStudentProfile from './pages/CompleteStudentProfile';
 import StudentDashboard from './pages/StudentDashboard';
 import VolunteerDashboard from './pages/VolunteerDashboard';
 import NGODashboard from './pages/NGODashboard';
@@ -14,8 +15,10 @@ import SessionsPage from './pages/SessionsPage';
 import BookExchange from './pages/BookExchange';
 import ExamsPage from './pages/ExamsPage';
 import Leaderboard from './pages/Leaderboard';
+import TextbooksPage from './pages/TextbooksPage';
 import OAuthSuccess from './pages/OAuthSuccess';
 import OAuthError from './pages/OAuthError';
+import NGOAdminLogin from './pages/NGOAdminLogin';
 import AppLayout from './components/AppLayout';
 
 const ProtectedRoute = ({ children, roles }) => {
@@ -49,7 +52,9 @@ export default function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/oauth-success" element={<OAuthSuccess />} />
           <Route path="/oauth-error" element={<OAuthError />} />
+          <Route path="/ngo-admin" element={<NGOAdminLogin />} />
           <Route path="/complete-volunteer-profile" element={<CompleteVolunteerProfile />} />
+          <Route path="/complete-student-profile" element={<CompleteStudentProfile />} />
           <Route path="/register/student" element={<RegisterStudent />} />
           <Route path="/register/volunteer" element={<RegisterVolunteer />} />
           <Route path="/dashboard" element={<DashboardRouter />} />
@@ -58,6 +63,7 @@ export default function App() {
             <Route path="doubts" element={<DoubtsPage />} />
             <Route path="sessions" element={<SessionsPage />} />
             <Route path="exams" element={<ExamsPage />} />
+            <Route path="textbooks" element={<TextbooksPage />} />
             <Route path="books" element={<BookExchange />} />
             <Route path="leaderboard" element={<Leaderboard />} />
           </Route>
@@ -66,6 +72,7 @@ export default function App() {
             <Route path="doubts" element={<DoubtsPage />} />
             <Route path="sessions" element={<SessionsPage />} />
             <Route path="exams" element={<ExamsPage />} />
+            <Route path="textbooks" element={<TextbooksPage />} />
             <Route path="leaderboard" element={<Leaderboard />} />
           </Route>
           <Route path="/ngo" element={<ProtectedRoute roles={['ngo_admin']}><AppLayout role="ngo_admin" /></ProtectedRoute>}>

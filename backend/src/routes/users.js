@@ -27,6 +27,32 @@ router.get('/profile', protect, async (req, res) => {
   }
 });
 
+// PUT /api/users/student-profile — student completes their profile after Google OAuth
+router.put('/student-profile', protect, authorize('student'), async (req, res) => {
+  try {
+    const { name, class: cls, age, schoolName, district, language } = req.body;
+
+    if (name && name.trim()) {
+      await User.findByIdAndUpdate(req.user._id, { name: name.trim() });
+    }
+    if (language) {
+      await User.findByIdAndUpdate(req.user._id, { language });
+    }
+
+    const student = await Student.findOneAndUpdate(
+      { userId: req.user._id },
+      { class: cls, age, schoolName: schoolName?.trim(), district: district?.trim() },
+      { new: true, runValidators: true }
+    );
+
+    if (!student) return res.status(404).json({ error: 'Student profile not found' });
+
+    res.json({ message: 'Profile completed', student });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
 // PUT /api/users/profile — volunteer/peer_mentor updates their profile after OAuth signup
 router.put('/profile', protect, authorize('volunteer', 'peer_mentor'), async (req, res) => {
   try {

@@ -2,11 +2,11 @@ const mongoose = require('mongoose');
 
 const studentSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  ngoId: { type: mongoose.Schema.Types.ObjectId, ref: 'NGO', required: true },
-  class: { type: Number, required: true, min: 1, max: 12 },
-  age: { type: Number, required: true },
-  schoolName: { type: String, required: true },
-  district: { type: String, required: true },
+  ngoId: { type: mongoose.Schema.Types.ObjectId, ref: 'NGO' },
+  class: { type: Number, min: 1, max: 12 },
+  age: { type: Number },
+  schoolName: { type: String, default: '' },
+  district: { type: String, default: '' },
   state: { type: String, default: 'Telangana' },
   weakSubjects: [{ type: String }],
   mentorId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
