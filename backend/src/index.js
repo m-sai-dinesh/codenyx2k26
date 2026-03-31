@@ -13,9 +13,12 @@ const userRoutes = require('./routes/users');
 const sessionRoutes = require('./routes/sessions');
 const doubtRoutes = require('./routes/doubts');
 const examRoutes = require('./routes/exams');
+const diagnosticRoutes = require('./routes/diagnostic');
 const bookRoutes = require('./routes/books');
 const dashboardRoutes = require('./routes/dashboard');
 const matchRoutes = require('./routes/match');
+const insightRoutes = require('./routes/insights');
+const { scheduleInsightJob } = require('./jobs/insightJob');
 
 const app = express();
 
@@ -52,9 +55,11 @@ app.use('/api/users', userRoutes);
 app.use('/api/sessions', sessionRoutes);
 app.use('/api/doubts', doubtRoutes);
 app.use('/api/exams', examRoutes);
+app.use('/api/diagnostic', diagnosticRoutes);
 app.use('/api/books', bookRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/match', matchRoutes);
+app.use('/api/insights', insightRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -88,6 +93,7 @@ const connectDB = async () => {
 };
 
 connectDB();
+scheduleInsightJob();
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

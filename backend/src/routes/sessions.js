@@ -67,13 +67,15 @@ router.put('/:id/attendance', protect, authorize('volunteer'), async (req, res) 
 router.put('/:id/notes', protect, authorize('volunteer', 'peer_mentor'), async (req, res) => {
   try {
     await Session.findByIdAndUpdate(req.params.id, {
-      notes: req.body.notes,
-      keyPoints: req.body.keyPoints,
-      assignments: req.body.assignments,
-      recordingDriveLink: req.body.recordingDriveLink,
-      notesPublished: true,
-      notesPublishedAt: new Date()
-    });
+      $set: {
+        notes: req.body.notes,
+        keyPoints: req.body.keyPoints,
+        assignments: req.body.assignments,
+        recordingDriveLink: req.body.recordingDriveLink,
+        notesPublished: true,
+        notesPublishedAt: new Date()
+      }
+    }, { returnDocument: 'after' });
     res.json({ message: 'Notes published' });
   } catch (err) {
     res.status(400).json({ error: err.message });

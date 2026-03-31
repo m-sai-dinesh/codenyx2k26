@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const peerMentorSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  ngoId: { type: mongoose.Schema.Types.ObjectId, ref: 'NGO', required: true },
+  ngoId: { type: mongoose.Schema.Types.ObjectId, ref: 'NGO' },
   volunteerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   class: { type: Number, required: true },
   subjects: [{ type: String }],

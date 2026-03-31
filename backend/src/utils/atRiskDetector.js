@@ -90,7 +90,7 @@ const detectPersistentWeakTopics = async (studentId) => {
 
   const topicScores = {};
   for (const result of results) {
-    for (const [topic, score] of result.topicBreakdown.entries()) {
+    for (const [topic, score] of Object.entries(result.topicBreakdown || {})) {
       if (!topicScores[topic]) topicScores[topic] = [];
       topicScores[topic].push(score);
     }

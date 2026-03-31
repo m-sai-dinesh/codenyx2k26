@@ -5,6 +5,64 @@ const { Exam, ExamResult } = require('../models/Exam');
 const Student = require('../models/Student');
 const { detectPersistentWeakTopics } = require('../utils/atRiskDetector');
 
+// GET /api/diagnostic/:class — get diagnostic exam for a student by class
+router.get('/diagnostic/:class', protect, async (req, res) => {
+  try {
+    const studentClass = parseInt(req.params.class);
+    const studentId = req.user._id;
+    
+    // Get student's NGO ID
+    const student = await Student.findById(studentId);
+    if (!student) {
+      return res.status(404).json({ error: 'Student not found' });
+    }
+    
+    // Find all active diagnostic exams for this class from the student's NGO
+    const diagnosticExams = await Exam.find({
+      type: 'diagnostic',
+      class: studentClass,
+      isActive: true,
+      ngoId: student.ngoId
+    }).sort({ subject: 1 });
+    
+    if (diagnosticExams.length === 0) {
+      return res.status(404).json({ error: 'No diagnostic exams found for this class' });
+    }
+    
+    // Check if student has already taken any of these exams
+    const takenExams = await ExamResult.find({
+      studentId: studentId,
+      examId: { $in: diagnosticExams.map(e => e._id) }
+    });
+    
+    if (takenExams.length > 0) {
+      return res.status(400).json({ error: 'You have already taken the diagnostic exam' });
+    }
+    
+    // Combine all diagnostic exams into a single exam structure
+    const combinedExam = {
+      _id: diagnosticExams[0]._id, // Use first exam ID as primary
+      title: `Diagnostic Test - Class ${studentClass}`,
+      subject: 'All Subjects',
+      class: studentClass,
+      type: 'diagnostic',
+      durationMinutes: diagnosticExams.reduce((sum, e) => sum + (e.durationMinutes || 30), 0),
+      questions: diagnosticExams.flatMap(e => 
+        e.questions.map(q => ({
+          ...q.toObject(),
+          subject: e.subject,
+          examId: e._id
+        }))
+      ),
+      totalMarks: diagnosticExams.reduce((sum, e) => sum + (e.totalMarks || 0), 0)
+    };
+    
+    res.json({ exam: combinedExam });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // POST /api/exams — volunteer or ngo_admin creates exam
 router.post('/', protect, authorize('volunteer', 'ngo_admin'), async (req, res) => {
   try {
@@ -117,8 +175,11 @@ router.get('/active', protect, authorize('student'), async (req, res) => {
 // GET /api/exams/:id — fetch a single exam by ID
 router.get('/:id', protect, async (req, res) => {
   try {
-    const exam = await Exam.findById(req.params.id);
+    const exam = await Exam.findById(req.params.id).populate('creatorId', 'name');
     if (!exam) return res.status(404).json({ error: 'Exam not found' });
+    if (exam.ngoId && exam.ngoId.toString() !== req.user.ngoId?.toString()) {
+      return res.status(403).json({ error: 'Unauthorized' });
+    }
     res.json(exam);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -198,6 +259,79 @@ router.post('/:id/submit', protect, authorize('student', 'volunteer'), async (re
     res.json({ result, persistentWeakTopics: persistentWeak });
   } catch (err) {
     res.status(400).json({ error: err.message });
+  }
+});
+
+// GET /api/exams — list all exams with optional type filter
+router.get('/', protect, async (req, res) => {
+  try {
+    const { type, class: cls, subject } = req.query;
+    const filter = {};
+    
+    if (type) filter.type = type;
+    if (cls) filter.class = parseInt(cls);
+    if (subject) filter.subject = subject;
+    
+    // NGO admin sees their own exams
+    if (req.user.ngoId) {
+      filter.ngoId = req.user.ngoId;
+    }
+    
+    const exams = await Exam.find(filter)
+      .populate('creatorId', 'name')
+      .sort({ class: 1, subject: 1, createdAt: -1 });
+    
+    res.json({ exams });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
+// PUT /api/exams/:id — update exam (NGO admin only)
+router.put('/:id', protect, authorize('ngo_admin'), async (req, res) => {
+  try {
+    const exam = await Exam.findById(req.params.id);
+    if (!exam) return res.status(404).json({ error: 'Exam not found' });
+    
+    // Check ownership
+    if (exam.ngoId && exam.ngoId.toString() !== req.user.ngoId?.toString()) {
+      return res.status(403).json({ error: 'Unauthorized' });
+    }
+    
+    const { title, questions, durationMinutes, isActive } = req.body;
+    
+    if (questions && questions.length > 0) {
+      exam.questions = questions;
+      exam.totalMarks = questions.reduce((sum, q) => sum + (q.marks || 1), 0);
+    }
+    
+    if (title) exam.title = title;
+    if (durationMinutes) exam.durationMinutes = durationMinutes;
+    if (isActive !== undefined) exam.isActive = isActive;
+    
+    await exam.save();
+    res.json(exam);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// DELETE /api/exams/:id — delete exam (NGO admin only)
+router.delete('/:id', protect, authorize('ngo_admin'), async (req, res) => {
+  try {
+    const exam = await Exam.findById(req.params.id);
+    if (!exam) return res.status(404).json({ error: 'Exam not found' });
+    
+    // Check ownership
+    if (exam.ngoId && exam.ngoId.toString() !== req.user.ngoId?.toString()) {
+      return res.status(403).json({ error: 'Unauthorized' });
+    }
+    
+    await Exam.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Exam deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 

@@ -62,7 +62,7 @@ export default function CompleteStudentProfile() {
       if (token) await loginWithToken(token);
 
       toast.success(t('Profile complete! Ready for your diagnostic exam.'));
-      navigate('/student/exams');
+      navigate('/student/diagnostic-exam');
     } catch (err) {
       toast.error(err.response?.data?.error || t('Failed to save profile. Please try again.'));
     } finally {

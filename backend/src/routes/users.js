@@ -42,7 +42,7 @@ router.put('/student-profile', protect, authorize('student'), async (req, res) =
     const student = await Student.findOneAndUpdate(
       { userId: req.user._id },
       { class: cls, age, schoolName: schoolName?.trim(), district: district?.trim() },
-      { new: true, runValidators: true }
+      { returnDocument: 'after', runValidators: true }
     );
 
     if (!student) return res.status(404).json({ error: 'Student profile not found' });
@@ -67,13 +67,13 @@ router.put('/profile', protect, authorize('volunteer', 'peer_mentor'), async (re
       profile = await Volunteer.findOneAndUpdate(
         { userId: req.user._id },
         { highestDegree, teachingExperience, teachingPreferences },
-        { new: true, runValidators: true }
+        { returnDocument: 'after', runValidators: true }
       );
     } else {
       profile = await PeerMentor.findOneAndUpdate(
         { userId: req.user._id },
         { class: pmClass, subjects: pmSubjects },
-        { new: true, runValidators: true }
+        { returnDocument: 'after', runValidators: true }
       );
     }
 
@@ -125,12 +125,14 @@ router.get('/leaderboard', protect, async (req, res) => {
   try {
     const ngoId = req.user.ngoId;
 
-    const volunteers = await Volunteer.find({ ngoId, isApproved: true })
+    const volFilter = ngoId ? { ngoId, isApproved: true } : { isApproved: true };
+    const volunteers = await Volunteer.find(volFilter)
       .populate('userId', 'name profileImage')
       .sort({ performanceScore: -1 })
       .limit(10);
 
-    const peerMentors = await PeerMentor.find({ ngoId, isApproved: true })
+    const pmFilter = ngoId ? { ngoId, isApproved: true } : { isApproved: true };
+    const peerMentors = await PeerMentor.find(pmFilter)
       .populate('userId', 'name profileImage')
       .sort({ performanceScore: -1 })
       .limit(10);
@@ -147,7 +149,7 @@ router.put('/:id/approve', protect, authorize('ngo_admin'), async (req, res) => 
     const volunteer = await Volunteer.findOneAndUpdate(
       { userId: req.params.id, ngoId: req.user.ngoId },
       { isApproved: true },
-      { new: true }
+      { returnDocument: 'after' }
     );
     if (!volunteer) return res.status(404).json({ error: 'Volunteer not found' });
     res.json({ message: 'Volunteer approved successfully', volunteer });

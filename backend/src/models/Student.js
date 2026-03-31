@@ -9,12 +9,17 @@ const studentSchema = new mongoose.Schema({
   district: { type: String, default: '' },
   state: { type: String, default: 'Telangana' },
   weakSubjects: [{ type: String }],
+  subjectsForMentoring: [{ type: String }], // All subjects student wants help with
+  pendingSubjects: [{ type: String }], // Subjects waiting for mentor assignment
   mentorId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+  mentorIds: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }], // Multiple mentors for different subjects
   mentorType: { type: String, enum: ['volunteer', 'peer_mentor'], default: null },
 
   // Diagnostic result
   diagnosticScore: { type: Number, default: null },
   diagnosticCompleted: { type: Boolean, default: false },
+  diagnosticTaken: { type: Boolean, default: false }, // New field to track if diagnostic was taken
+  needsMentorMapping: { type: Boolean, default: false }, // Flag for NGO dashboard
   isPeerMentorCandidate: { type: Boolean, default: false },
 
   // Subject health: { math: 'red' | 'yellow' | 'green' }

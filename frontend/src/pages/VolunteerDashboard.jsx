@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/client';
-import { MessageCircleQuestion, Calendar, Users, Star, TrendingUp, AlertCircle, CheckCircle2, BookOpen } from 'lucide-react';
+import { MessageCircleQuestion, Calendar, Users, Star, TrendingUp, AlertCircle, CheckCircle2, BookOpen, Brain } from 'lucide-react';
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
 const BADGE_ICONS = { rising_mentor:'', impact_maker:'', quick_responder:'', top_mentor:'', peer_helper:'', study_buddy:'', impact_peer:'', trusted_peer:'' };
 
@@ -12,14 +13,17 @@ export default function VolunteerDashboard() {
   const [data, setData] = useState(null);
   const [qualExams, setQualExams] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [studentInsights, setStudentInsights] = useState([]);
 
   useEffect(() => {
     Promise.all([
       api.get('/dashboard/volunteer'),
-      user?.role === 'volunteer' ? api.get('/exams/qualification/required').catch(() => ({ data: [] })) : Promise.resolve({ data: [] })
-    ]).then(([res, qualRes]) => {
+      user?.role === 'volunteer' ? api.get('/exams/qualification/required').catch(() => ({ data: [] })) : Promise.resolve({ data: [] }),
+      api.get('/insights/volunteer').catch(() => ({ data: { students: [] } }))
+    ]).then(([res, qualRes, insightRes]) => {
       setData(res.data);
       setQualExams(qualRes.data);
+      setStudentInsights(insightRes.data.students || []);
     }).finally(() => setLoading(false));
   }, [user]);
 
@@ -209,23 +213,95 @@ export default function VolunteerDashboard() {
             </div>
           </div>
 
-          {/* Students list */}
+          {/* Students list with AI insights */}
           {students.length > 0 && (
             <div className="card p-5" style={{ animation: 'fadeUp 0.4s ease 0.3s forwards', opacity: 0 }}>
-              <h2 className="font-display font-semibold text-surface-800 mb-4">Your Students ({students.length})</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                {students.map(student => (
-                  <div key={student._id} className="flex items-center gap-3 p-3 rounded-xl bg-surface-50">
-                    <div className="w-9 h-9 rounded-xl bg-brand-100 flex items-center justify-center text-brand-700 font-bold text-sm flex-shrink-0">
-                      {student.userId?.name?.[0]?.toUpperCase()}
+              <div className="flex items-center gap-2 mb-4">
+                <h2 className="font-display font-semibold text-surface-800">Your Students ({students.length})</h2>
+                {studentInsights.length > 0 && (
+                  <span className="ml-auto flex items-center gap-1 text-xs text-purple-600">
+                    <Brain size={13} /> AI insights
+                  </span>
+                )}
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {students.map(student => {
+                  const sid = student.userId?._id?.toString() || student.userId?.toString();
+                  const insight = studentInsights.find(i => i.studentId?.toString() === sid);
+                  const riskBadge = {
+                    low: 'bg-green-100 text-green-700',
+                    medium: 'bg-amber-100 text-amber-700',
+                    high: 'bg-red-100 text-red-700'
+                  };
+                  const trendIcon = { improving: '↑', stable: '→', declining: '↓' };
+                  const trendColor = { improving: 'text-green-600', stable: 'text-surface-500', declining: 'text-red-600' };
+
+                  // Build chart data from subjectTrends avgScore
+                  const chartData = insight?.subjectTrends?.map(t => ({
+                    name: t.subject?.slice(0, 6) || '',
+                    score: t.avgScore || 0
+                  })) || [];
+
+                  return (
+                    <div key={student._id} className="bg-surface-50 border border-surface-200 rounded-xl p-4">
+                      {/* Header row */}
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="w-9 h-9 rounded-xl bg-brand-100 flex items-center justify-center text-brand-700 font-bold text-sm flex-shrink-0">
+                          {student.userId?.name?.[0]?.toUpperCase()}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="font-semibold text-sm text-surface-900 truncate">{student.userId?.name}</p>
+                          <p className="text-xs text-surface-400">Class {student.class}</p>
+                        </div>
+                        {insight && !insight.insufficientData && (
+                          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full flex-shrink-0 ${riskBadge[insight.riskLevel]}`}>
+                            {insight.riskLevel}
+                          </span>
+                        )}
+                        {student.isAtRisk && <AlertCircle size={14} className="text-red-500 flex-shrink-0" />}
+                      </div>
+
+                      {/* No insight yet */}
+                      {!insight || insight.insufficientData ? (
+                        <p className="text-xs text-surface-400 italic">No AI insight yet</p>
+                      ) : (
+                        <>
+                          {/* Mini subject score chart */}
+                          {chartData.length > 1 && (
+                            <ResponsiveContainer width="100%" height={55}>
+                              <LineChart data={chartData}>
+                                <Line type="monotone" dataKey="score" stroke="#1e7d5e" strokeWidth={2} dot={false} />
+                                <XAxis dataKey="name" tick={{ fontSize: 8 }} axisLine={false} tickLine={false} />
+                                <Tooltip contentStyle={{ fontSize: 10, padding: '2px 6px' }} />
+                              </LineChart>
+                            </ResponsiveContainer>
+                          )}
+
+                          {/* Subject trend badges */}
+                          <div className="flex flex-wrap gap-1 my-2">
+                            {insight.subjectTrends.slice(0, 3).map(t => (
+                              <span key={t.subject} className={`text-xs px-1.5 py-0.5 rounded-md bg-surface-100 font-medium ${trendColor[t.trend]}`}>
+                                {t.subject?.slice(0, 7)} {trendIcon[t.trend]}
+                              </span>
+                            ))}
+                            {insight.attendanceFlagged && (
+                              <span className="text-xs px-1.5 py-0.5 rounded-md bg-amber-50 text-amber-600 font-medium">
+                                Attendance ↓
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Top recommendation */}
+                          {insight.recommendations?.[0] && (
+                            <p className="text-xs text-surface-500 border-t border-surface-200 pt-2 mt-1 line-clamp-2">
+                              {insight.recommendations[0]}
+                            </p>
+                          )}
+                        </>
+                      )}
                     </div>
-                    <div className="min-w-0">
-                      <p className="font-semibold text-sm text-surface-900 truncate">{student.userId?.name}</p>
-                      <p className="text-xs text-surface-400">Class {student.class}</p>
-                    </div>
-                    {student.isAtRisk && <AlertCircle size={14} className="text-red-500 flex-shrink-0 ml-auto" />}
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}

@@ -7,6 +7,8 @@ import RegisterStudent from './pages/RegisterStudent';
 import RegisterVolunteer from './pages/RegisterVolunteer';
 import CompleteVolunteerProfile from './pages/CompleteVolunteerProfile';
 import CompleteStudentProfile from './pages/CompleteStudentProfile';
+import DiagnosticExam from './pages/DiagnosticExam';
+import StudentSubjectSelection from './pages/StudentSubjectSelection';
 import StudentDashboard from './pages/StudentDashboard';
 import VolunteerDashboard from './pages/VolunteerDashboard';
 import NGODashboard from './pages/NGODashboard';
@@ -18,6 +20,10 @@ import Leaderboard from './pages/Leaderboard';
 import TextbooksPage from './pages/TextbooksPage';
 import OAuthSuccess from './pages/OAuthSuccess';
 import OAuthError from './pages/OAuthError';
+import CreateDiagnosticExam from './pages/CreateDiagnosticExam';
+import ManageDiagnosticTests from './pages/ManageDiagnosticTests';
+import ManageQualificationTests from './pages/ManageQualificationTests';
+import EditExam from './pages/EditExam';
 import NGOAdminLogin from './pages/NGOAdminLogin';
 import AppLayout from './components/AppLayout';
 import TakeExamPage from './pages/TakeExamPage';
@@ -56,6 +62,8 @@ export default function App() {
           <Route path="/ngo-admin" element={<NGOAdminLogin />} />
           <Route path="/complete-volunteer-profile" element={<CompleteVolunteerProfile />} />
           <Route path="/complete-student-profile" element={<CompleteStudentProfile />} />
+          <Route path="/student/diagnostic-exam" element={<ProtectedRoute roles={['student']}><DiagnosticExam /></ProtectedRoute>} />
+          <Route path="/student/subject-selection" element={<ProtectedRoute roles={['student']}><StudentSubjectSelection /></ProtectedRoute>} />
           <Route path="/register/student" element={<RegisterStudent />} />
           <Route path="/register/volunteer" element={<RegisterVolunteer />} />
           <Route path="/dashboard" element={<DashboardRouter />} />
@@ -77,6 +85,10 @@ export default function App() {
             <Route path="textbooks" element={<TextbooksPage />} />
             <Route path="leaderboard" element={<Leaderboard />} />
           </Route>
+          <Route path="/ngo/create-diagnostic" element={<ProtectedRoute roles={['ngo_admin']}><CreateDiagnosticExam /></ProtectedRoute>} />
+          <Route path="/ngo/manage-diagnostic-tests" element={<ProtectedRoute roles={['ngo_admin']}><ManageDiagnosticTests /></ProtectedRoute>} />
+          <Route path="/ngo/manage-qualification-tests" element={<ProtectedRoute roles={['ngo_admin']}><ManageQualificationTests /></ProtectedRoute>} />
+          <Route path="/ngo/edit-exam/:id" element={<ProtectedRoute roles={['ngo_admin']}><EditExam /></ProtectedRoute>} />
           <Route path="/ngo" element={<ProtectedRoute roles={['ngo_admin']}><AppLayout role="ngo_admin" /></ProtectedRoute>}>
             <Route path="dashboard" element={<NGODashboard />} />
             <Route path="exams" element={<ExamsPage />} />

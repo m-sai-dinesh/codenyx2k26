@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import api from '../api/client';
-import { AlertTriangle, Users, BookOpen, Trophy, TrendingUp, CheckCircle2, BarChart3, UserCheck, Check, Plus } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { AlertTriangle, Users, BookOpen, Trophy, TrendingUp, CheckCircle2, BarChart3, UserCheck, Check, Plus, UserPlus, Search, GraduationCap, ArrowRight, Brain } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, Legend } from 'recharts';
 import { useNavigate } from 'react-router-dom';
 import { X } from 'lucide-react'; // imported X for modal
+import toast from 'react-hot-toast';
 
 const RISK_COLORS = ['#ef4444', '#f97316', '#eab308'];
 
@@ -23,10 +24,66 @@ export default function NGODashboard() {
   const [loading, setLoading] = useState(true);
   const [reviewResultId, setReviewResultId] = useState(null);
   const [reviewData, setReviewData] = useState(null);
+  const [insights, setInsights] = useState(null);
+  const [insightsLoading, setInsightsLoading] = useState(true);
+  const [jobRunning, setJobRunning] = useState(false);
+  const [jobStatus, setJobStatus] = useState(null);
+  
+  // Pending mentor mappings state
+  const [pendingMappings, setPendingMappings] = useState([]);
+  const [loadingMappings, setLoadingMappings] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState(null);
+  const [availableMentors, setAvailableMentors] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [assigning, setAssigning] = useState(false);
 
   useEffect(() => {
     api.get('/dashboard/ngo').then(r => setData(r.data)).finally(() => setLoading(false));
+    api.get('/insights/ngo').then(r => setInsights(r.data)).catch(() => setInsights(null)).finally(() => setInsightsLoading(false));
+
+    // Load pending mentor mappings
+    loadPendingMappings();
   }, []);
+  
+  const loadPendingMappings = async () => {
+    setLoadingMappings(true);
+    try {
+      const { data } = await api.get('/diagnostic/pending-mappings');
+      setPendingMappings(data.pendingMappings || []);
+    } catch (err) {
+      console.error('Failed to load pending mappings', err);
+    } finally {
+      setLoadingMappings(false);
+    }
+  };
+
+  const handleRunNow = async () => {
+    try {
+      await api.post('/insights/run-now');
+      setJobRunning(true);
+      toast.success('AI analysis started — this may take a few minutes');
+      // Poll status every 5s until job completes
+      const poll = setInterval(async () => {
+        try {
+          const { data } = await api.get('/insights/status');
+          setJobStatus(data);
+          if (!data.running) {
+            clearInterval(poll);
+            setJobRunning(false);
+            // Refresh insights once job completes
+            const r = await api.get('/insights/ngo');
+            setInsights(r.data);
+            toast.success('AI insights updated!');
+          }
+        } catch {
+          clearInterval(poll);
+          setJobRunning(false);
+        }
+      }, 5000);
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to start job');
+    }
+  };
 
   useEffect(() => {
     if (!reviewResultId) {
@@ -52,12 +109,69 @@ export default function NGODashboard() {
       await api.put(`/users/${volunteerId}/approve`);
       const r = await api.get('/dashboard/ngo');
       setData(r.data);
-      import('react-hot-toast').then(m => m.default.success('Volunteer approved successfully!'));
+      toast.success('Volunteer approved successfully!');
     } catch (err) {
       console.error('Failed to approve volunteer', err);
-      import('react-hot-toast').then(m => m.default.error('Failed to approve'));
+      toast.error('Failed to approve');
     }
   };
+
+  // Handle opening mentor assignment modal
+  const openAssignModal = async (student) => {
+    setSelectedStudent(student);
+    setSearchQuery('');
+    setAvailableMentors([]);
+    
+    // Load available mentors for the first pending subject
+    const pendingSubject = student.pendingSubjects?.[0] || student.subjectsForMentoring?.[0];
+    if (pendingSubject) {
+      await loadAvailableMentors(student.class, pendingSubject);
+    }
+  };
+
+  // Load available mentors for a class/subject
+  const loadAvailableMentors = async (studentClass, subject) => {
+    try {
+      const { data } = await api.get(`/diagnostic/available-mentors/${studentClass}/${subject}`);
+      setAvailableMentors(data.mentors || []);
+    } catch (err) {
+      console.error('Failed to load mentors', err);
+      toast.error('Failed to load available mentors');
+    }
+  };
+
+  // Assign mentor to student
+  const handleAssignMentor = async (volunteerId) => {
+    if (!selectedStudent) return;
+    
+    setAssigning(true);
+    try {
+      const pendingSubject = selectedStudent.pendingSubjects?.[0] || selectedStudent.subjectsForMentoring?.[0];
+      
+      await api.post('/diagnostic/assign-mentor', {
+        studentId: selectedStudent.studentId,
+        volunteerId: volunteerId,
+        subjects: [pendingSubject]
+      });
+      
+      toast.success('Mentor assigned successfully!');
+      setSelectedStudent(null);
+      
+      // Refresh pending mappings
+      loadPendingMappings();
+    } catch (err) {
+      console.error('Failed to assign mentor', err);
+      toast.error(err.response?.data?.error || 'Failed to assign mentor');
+    } finally {
+      setAssigning(false);
+    }
+  };
+
+  // Filter mentors based on search query
+  const filteredMentors = availableMentors.filter(mentor => 
+    mentor.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    mentor.email.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const subjectChartData = Object.entries(subjectDoubtCount)
     .sort(([,a],[,b]) => b - a)
@@ -92,46 +206,88 @@ export default function NGODashboard() {
         ))}
       </div>
 
-      {/* Qualification Exam Matrix */}
-      <div className="card border border-brand-200 overflow-hidden" style={{ animation: 'fadeUp 0.4s ease 0.08s forwards', opacity: 0 }}>
-        <div className="bg-brand-50 px-5 py-3 flex items-center justify-between border-b border-brand-100">
-          <div className="flex items-center gap-2">
-            <BookOpen size={18} className="text-brand-600" />
-            <h2 className="font-display font-semibold text-brand-900">Qualification Exam Tracker</h2>
-          </div>
-          <span className="text-xs text-brand-700">Required tests per subject</span>
-        </div>
-        <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-          {Array.from({ length: 10 }, (_, i) => i + 1).map(cls => {
-            const subjects = getSubjectsForClass(cls);
-            return (
-              <div key={cls} className="bg-surface-50 border border-surface-200 rounded-xl p-3">
-                <h3 className="font-semibold text-sm text-surface-900 border-b border-surface-200 pb-2 mb-2">Class {cls}</h3>
-                <div className="flex flex-col gap-1.5">
-                  {subjects.map(subject => {
-                    const exists = overview.qualExams?.some(e => parseInt(e.class) === cls && e.subject.toLowerCase() === subject.toLowerCase());
-                    return (
-                      <div key={subject} className="flex items-center justify-between px-2 py-1.5 rounded-lg border bg-white border-surface-100">
-                        <span className="text-xs font-medium text-surface-700 truncate mr-2" title={subject}>{subject}</span>
-                        {exists ? (
-                          <span className="badge bg-green-100 text-green-700 text-[10px] flex-shrink-0">✓ Exists</span>
-                        ) : (
-                          <button 
-                            onClick={() => navigate(`/ngo/exams?create=true&type=qualification&class=${cls}&subject=${encodeURIComponent(subject)}`)}
-                            className="bg-amber-100 text-amber-700 hover:bg-amber-200 text-[10px] px-2 py-0.5 rounded-md font-semibold transition-colors flex items-center gap-1 flex-shrink-0"
-                          >
-                            <Plus size={10} /> Create
-                          </button>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            );
-          })}
-        </div>
+      {/* Quick Actions */}
+      <div className="flex flex-wrap gap-3" style={{ animation: 'fadeUp 0.4s ease 0.06s forwards', opacity: 0 }}>
+        <button
+          onClick={() => navigate('/ngo/manage-diagnostic-tests')}
+          className="btn-primary flex items-center gap-2 px-6 py-3"
+        >
+          <BookOpen size={18} />
+          Manage Diagnostic Tests
+        </button>
+        <button
+          onClick={() => navigate('/ngo/manage-qualification-tests')}
+          className="btn-secondary flex items-center gap-2 px-6 py-3"
+        >
+          <GraduationCap size={18} />
+          Manage Qualification Tests
+        </button>
       </div>
+
+      {/* Pending Mentor Mappings */}
+      {pendingMappings.length > 0 && (
+        <div className="card border border-amber-200 overflow-hidden" style={{ animation: 'fadeUp 0.4s ease 0.09s forwards', opacity: 0 }}>
+          <div className="bg-amber-50 px-5 py-3 flex items-center gap-3 border-b border-amber-100">
+            <UserPlus size={18} className="text-amber-600" />
+            <h2 className="font-display font-semibold text-amber-900">Pending Mentor Assignments ({pendingMappings.length})</h2>
+          </div>
+          <div className="p-4">
+            <p className="text-sm text-surface-600 mb-4">
+              These students have completed their diagnostic exams and need mentors assigned for the following subjects:
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {pendingMappings.map((student, i) => (
+                <div key={student.studentId} className="bg-surface-50 border border-surface-200 rounded-xl p-4">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-brand-100 flex items-center justify-center text-brand-700 font-bold text-sm">
+                        {student.studentName?.[0]?.toUpperCase()}
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-surface-900">{student.studentName}</h3>
+                        <p className="text-xs text-surface-500">Class {student.class} • {student.district}</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => openAssignModal(student)}
+                      className="btn-primary py-1.5 px-3 text-sm flex items-center gap-1.5"
+                    >
+                      <UserPlus size={14} />
+                      Assign
+                    </button>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <div>
+                      <p className="text-xs font-medium text-surface-500 mb-1.5">Subjects needing mentors:</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {student.pendingSubjects.map((subject, idx) => (
+                          <span key={idx} className="px-2 py-1 bg-amber-100 text-amber-700 text-xs rounded-lg font-medium">
+                            {subject}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    {student.currentMentors.length > 0 && (
+                      <div>
+                        <p className="text-xs font-medium text-surface-500 mb-1.5">Current mentors:</p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {student.currentMentors.map((mentor, idx) => (
+                            <span key={idx} className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-lg">
+                              {mentor.name}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* At-risk alert */}
       {atRiskStudents.length > 0 && (
@@ -306,6 +462,259 @@ export default function NGODashboard() {
           ))}
         </div>
       </div>
+
+      {/* AI Insights Section */}
+      <div className="card p-5" style={{ animation: 'fadeUp 0.4s ease 0.3s forwards', opacity: 0 }}>
+        <div className="flex items-center gap-2 mb-5">
+          <Brain size={18} className="text-purple-600" />
+          <h2 className="font-display font-semibold text-surface-800">AI Student Insights</h2>
+          <div className="ml-auto flex items-center gap-3">
+            {!insightsLoading && insights && (
+              <span className="text-xs text-surface-400">
+                {insights.totalAnalyzed} analysed · last run {insights.lastRun ? new Date(insights.lastRun).toLocaleDateString() : 'never'}
+              </span>
+            )}
+            {jobRunning ? (
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-purple-50 border border-purple-200 rounded-lg">
+                <div className="w-3 h-3 border-2 border-purple-400 border-t-transparent rounded-full animate-spin" />
+                <span className="text-xs text-purple-700 font-medium">
+                  {jobStatus?.total > 0 ? `Analysing… ${jobStatus.total} students` : 'Starting…'}
+                </span>
+              </div>
+            ) : (
+              <button
+                onClick={handleRunNow}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold rounded-lg transition-colors"
+              >
+                <Brain size={12} />
+                Run Now
+              </button>
+            )}
+          </div>
+        </div>
+
+        {insightsLoading ? (
+          <div className="h-40 shimmer rounded-xl" />
+        ) : !insights || insights.totalAnalyzed === 0 ? (
+          <div className="flex flex-col items-center py-10 text-surface-400 gap-2">
+            <Brain size={32} className="opacity-30" />
+            <p className="text-sm">No AI insights yet — click <strong>Run Now</strong> or wait for midnight IST</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Risk Distribution Pie Chart */}
+            <div>
+              <p className="text-xs font-medium text-surface-500 mb-3 uppercase tracking-wide">Risk Distribution</p>
+              <ResponsiveContainer width="100%" height={200}>
+                <PieChart>
+                  <Pie
+                    data={[
+                      { name: 'Low Risk', value: insights.distribution.low },
+                      { name: 'Medium Risk', value: insights.distribution.medium },
+                      { name: 'High Risk', value: insights.distribution.high },
+                    ]}
+                    cx="50%" cy="50%"
+                    innerRadius={50} outerRadius={80}
+                    dataKey="value"
+                    label={({ name, percent }) => percent > 0 ? `${Math.round(percent * 100)}%` : ''}
+                    labelLine={false}
+                  >
+                    <Cell fill="#22c55e" />
+                    <Cell fill="#f97316" />
+                    <Cell fill="#ef4444" />
+                  </Pie>
+                  <Tooltip formatter={(val, name) => [val + ' students', name]} />
+                  <Legend iconType="circle" iconSize={10} />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* High-Risk Student Cards */}
+            <div>
+              <p className="text-xs font-medium text-surface-500 mb-3 uppercase tracking-wide">
+                High Risk Students ({insights.highRisk.length})
+              </p>
+              {insights.highRisk.length === 0 ? (
+                <div className="flex flex-col items-center py-8 gap-2 text-surface-400">
+                  <CheckCircle2 size={28} className="text-green-500 opacity-70" />
+                  <p className="text-sm">No high-risk students detected</p>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-3 overflow-y-auto max-h-52 pr-1">
+                  {insights.highRisk.map(s => (
+                    <div key={s.studentId} className="bg-red-50 border border-red-200 rounded-xl p-3">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="font-semibold text-surface-900 text-sm">{s.name}</span>
+                        <span className="text-xs bg-red-200 text-red-800 px-2 py-0.5 rounded-full font-bold">
+                          {s.riskScore}/100
+                        </span>
+                      </div>
+                      <p className="text-xs text-surface-600 mb-2">{s.trendSummary}</p>
+                      <div className="flex flex-wrap gap-1 mb-1">
+                        {s.weakSubjects.slice(0, 3).map(sub => (
+                          <span key={sub} className="px-2 py-0.5 bg-red-100 text-red-700 text-xs rounded-lg">{sub}</span>
+                        ))}
+                        {s.attendanceFlagged && (
+                          <span className="px-2 py-0.5 bg-amber-100 text-amber-700 text-xs rounded-lg">Low attendance</span>
+                        )}
+                      </div>
+                      {s.recommendations.slice(0, 1).map((rec, i) => (
+                        <p key={i} className="text-xs text-surface-500 flex items-start gap-1">
+                          <span className="text-red-400 mt-0.5 flex-shrink-0">•</span> {rec}
+                        </p>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Mentor Assignment Modal */}
+      {selectedStudent && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col shadow-2xl">
+            <div className="p-4 border-b border-surface-200 flex items-center justify-between bg-surface-50">
+              <div>
+                <h2 className="font-display font-semibold text-surface-900">Assign Mentor</h2>
+                <p className="text-sm text-surface-500 mt-0.5">
+                  {selectedStudent.studentName} • Class {selectedStudent.class}
+                </p>
+              </div>
+              <button 
+                onClick={() => setSelectedStudent(null)} 
+                className="p-2 text-surface-500 hover:text-surface-900 bg-white rounded-lg border border-surface-200"
+              >
+                <X size={16} />
+              </button>
+            </div>
+            
+            <div className="p-4 overflow-y-auto flex-1 bg-surface-50/50">
+              {/* Pending Subject Info */}
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4">
+                <p className="text-sm text-amber-800">
+                  <span className="font-semibold">Subject to assign:</span>{' '}
+                  {selectedStudent.pendingSubjects?.[0] || selectedStudent.subjectsForMentoring?.[0]}
+                </p>
+              </div>
+
+              {/* Search */}
+              <div className="relative mb-4">
+                <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-surface-400" />
+                <input
+                  type="text"
+                  placeholder="Search mentors by name..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="input w-full pl-10"
+                />
+              </div>
+
+              {/* Mentors List */}
+              <div className="space-y-3">
+                {filteredMentors.length === 0 ? (
+                  <div className="text-center py-8 text-surface-500">
+                    <GraduationCap size={32} className="mx-auto mb-2 opacity-30" />
+                    <p className="text-sm">No available mentors found</p>
+                    <p className="text-xs mt-1">Try a different search or check capacity</p>
+                  </div>
+                ) : (
+                  filteredMentors.map((mentor) => {
+                    const isAtCapacity = mentor.availableSlots <= 0;
+                    return (
+                      <div
+                        key={mentor.id}
+                        className={`bg-white p-4 rounded-xl border ${
+                          isAtCapacity ? 'border-surface-200 opacity-60' : 'border-surface-200'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <h3 className="font-semibold text-surface-900">{mentor.name}</h3>
+                              {isAtCapacity && (
+                                <span className="px-2 py-0.5 bg-red-100 text-red-700 text-xs rounded-full">
+                                  At Capacity
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-sm text-surface-500">{mentor.email}</p>
+                            
+                            {/* Capacity Bar */}
+                            <div className="mt-2">
+                              <div className="flex items-center justify-between text-xs text-surface-500 mb-1">
+                                <span>Students: {mentor.currentStudents}/{mentor.capacity}</span>
+                                <span>{mentor.availableSlots} slots available</span>
+                              </div>
+                              <div className="w-full h-2 bg-surface-100 rounded-full overflow-hidden">
+                                <div
+                                  className={`h-full rounded-full ${
+                                    mentor.availableSlots <= 0
+                                      ? 'bg-red-500'
+                                      : mentor.availableSlots <= 3
+                                      ? 'bg-amber-400'
+                                      : 'bg-brand-500'
+                                  }`}
+                                  style={{
+                                    width: `${(mentor.currentStudents / mentor.capacity) * 100}%`,
+                                  }}
+                                />
+                              </div>
+                            </div>
+                            
+                            {/* Subjects */}
+                            <div className="flex flex-wrap gap-1 mt-2">
+                              {mentor.subjects?.slice(0, 3).map((subject, idx) => (
+                                <span
+                                  key={idx}
+                                  className="px-2 py-0.5 bg-brand-50 text-brand-700 text-xs rounded-full"
+                                >
+                                  {subject}
+                                </span>
+                              ))}
+                              {mentor.subjects?.length > 3 && (
+                                <span className="px-2 py-0.5 bg-surface-100 text-surface-600 text-xs rounded-full">
+                                  +{mentor.subjects.length - 3} more
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          
+                          <button
+                            onClick={() => handleAssignMentor(mentor.id)}
+                            disabled={assigning || isAtCapacity}
+                            className={`ml-4 px-4 py-2 rounded-lg font-medium text-sm transition-all ${
+                              isAtCapacity
+                                ? 'bg-surface-100 text-surface-400 cursor-not-allowed'
+                                : 'bg-brand-600 text-white hover:bg-brand-700'
+                            }`}
+                          >
+                            {assigning ? 'Assigning...' : 'Assign'}
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+            
+            <div className="p-4 border-t border-surface-200 bg-white flex justify-between">
+              <button 
+                onClick={() => setSelectedStudent(null)} 
+                className="btn-secondary"
+              >
+                Cancel
+              </button>
+              <p className="text-sm text-surface-500">
+                {filteredMentors.filter(m => m.availableSlots > 0).length} mentors available
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Review Result Modal */}
       {reviewResultId && (
