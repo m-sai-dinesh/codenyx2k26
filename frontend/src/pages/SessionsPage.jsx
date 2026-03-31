@@ -8,7 +8,13 @@ const SUBJECTS = ['Mathematics', 'Science', 'English', 'Telugu', 'Hindi', 'Socia
 
 function SessionCard({ session, isVolunteer, onNotesSubmit }) {
   const [expanded, setExpanded] = useState(false);
-  const [notesForm, setNotesForm] = useState({ notes: '', keyPoints: '', assignments: '', recordingDriveLink: '' });
+  const [isEditingNotes, setIsEditingNotes] = useState(!session.notesPublished);
+  const [notesForm, setNotesForm] = useState({ 
+    notes: session.notes || '', 
+    keyPoints: session.keyPoints?.join('\n') || '', 
+    assignments: session.assignments?.[0]?.description || '', 
+    recordingDriveLink: session.recordingDriveLink || '' 
+  });
   const [submitting, setSubmitting] = useState(false);
 
   const attended = session.attendance?.find(a => a.present);
@@ -62,7 +68,7 @@ function SessionCard({ session, isVolunteer, onNotesSubmit }) {
             <a href={session.recordingDriveLink} target="_blank" rel="noreferrer"
               onClick={e => e.stopPropagation()}
               className="flex-shrink-0 flex items-center gap-1 text-xs text-brand-600 font-semibold hover:underline">
-              <ExternalLink size={13} /> Recording
+              <ExternalLink size={13} /> View Material
             </a>
           )}
         </div>
@@ -71,10 +77,10 @@ function SessionCard({ session, isVolunteer, onNotesSubmit }) {
       {expanded && (
         <div className="border-t border-surface-100 p-4" style={{ animation: 'fadeIn 0.2s ease forwards' }}>
           {/* Notes */}
-          {session.notesPublished && (
-            <div className="mb-4">
-              <p className="text-xs font-semibold text-surface-500 uppercase tracking-wide mb-2">Session Notes</p>
-              <p className="text-sm text-surface-700">{session.notes}</p>
+          {session.notesPublished && !isEditingNotes && (
+            <div className="mb-4 relative">
+              <p className="text-xs font-semibold text-surface-500 uppercase tracking-wide mb-2">Session Material & Notes</p>
+              <p className="text-sm text-surface-700 whitespace-pre-wrap">{session.notes}</p>
               {session.keyPoints?.length > 0 && (
                 <ul className="mt-3 flex flex-col gap-1.5">
                   {session.keyPoints.map((kp, i) => (
@@ -97,19 +103,32 @@ function SessionCard({ session, isVolunteer, onNotesSubmit }) {
                   ))}
                 </div>
               )}
+              {isVolunteer && (
+                <button 
+                  onClick={() => setIsEditingNotes(true)} 
+                  className="absolute top-0 right-0 text-xs font-semibold text-brand-600 hover:underline"
+                >
+                  Edit Materials
+                </button>
+              )}
             </div>
           )}
 
           {/* Volunteer notes form */}
-          {isVolunteer && session.status === 'completed' && !session.notesPublished && (
+          {isVolunteer && isEditingNotes && (
             <div className="flex flex-col gap-3">
-              <p className="text-sm font-semibold text-surface-700">Post Session Notes</p>
-              <textarea className="input min-h-[60px] resize-none text-sm" placeholder="What was covered today..." value={notesForm.notes} onChange={e => setNotesForm(p => ({ ...p, notes: e.target.value }))} />
-              <textarea className="input min-h-[60px] resize-none text-sm" placeholder="Key points (one per line)" value={notesForm.keyPoints} onChange={e => setNotesForm(p => ({ ...p, keyPoints: e.target.value }))} />
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-semibold text-surface-700">Update Session Materials & Notes</p>
+                {session.notesPublished && (
+                  <button onClick={() => setIsEditingNotes(false)} className="text-surface-400 hover:text-surface-600"><X size={16} /></button>
+                )}
+              </div>
+              <textarea className="input min-h-[60px] resize-none text-sm" placeholder="Any comments, syllabus chunks, or what will be covered..." value={notesForm.notes} onChange={e => setNotesForm(p => ({ ...p, notes: e.target.value }))} />
+              <textarea className="input min-h-[60px] resize-none text-sm" placeholder="Important topics (one per line)" value={notesForm.keyPoints} onChange={e => setNotesForm(p => ({ ...p, keyPoints: e.target.value }))} />
               <textarea className="input min-h-[50px] resize-none text-sm" placeholder="Assignment for students..." value={notesForm.assignments} onChange={e => setNotesForm(p => ({ ...p, assignments: e.target.value }))} />
-              <input className="input text-sm" placeholder="Google Drive recording link (optional)" value={notesForm.recordingDriveLink} onChange={e => setNotesForm(p => ({ ...p, recordingDriveLink: e.target.value }))} />
-              <button onClick={handleNotes} disabled={submitting || !notesForm.notes} className="btn-primary py-2 text-sm justify-center">
-                {submitting ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full spin" /> : <><ClipboardList size={15} /> Publish Notes</>}
+              <input className="input text-sm" placeholder="PDF Link / Google Drive Material / Recording link" value={notesForm.recordingDriveLink} onChange={e => setNotesForm(p => ({ ...p, recordingDriveLink: e.target.value }))} />
+              <button onClick={handleNotes} disabled={submitting || (!notesForm.notes && !notesForm.recordingDriveLink)} className="btn-primary py-2 text-sm justify-center">
+                {submitting ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full spin" /> : <><ClipboardList size={15} /> Publish Resources</>}
               </button>
             </div>
           )}

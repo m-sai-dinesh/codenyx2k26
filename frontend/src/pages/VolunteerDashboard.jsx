@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/client';
-import { MessageCircleQuestion, Calendar, Users, Star, TrendingUp, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { MessageCircleQuestion, Calendar, Users, Star, TrendingUp, AlertCircle, CheckCircle2, BookOpen } from 'lucide-react';
 
 const BADGE_ICONS = { rising_mentor:'', impact_maker:'', quick_responder:'', top_mentor:'', peer_helper:'', study_buddy:'', impact_peer:'', trusted_peer:'' };
 
@@ -39,13 +39,35 @@ export default function VolunteerDashboard() {
           <p className="text-surface-500 text-sm mt-1">
             {user?.role === 'peer_mentor'
             ? `Peer Mentor · ${volunteer?.subjects?.join(', ') || 'All subjects'}`
-            : volunteer?.qualificationPassed
-              ? `${volunteer.subjects?.join(', ')}`
-              : 'Complete your qualification test to get started'}
+            : volunteer?.isApproved
+              ? 'Active Volunteer Faculty'
+              : 'Complete your qualification tests to get started'}
           </p>
         </div>
         {volunteer?.isVerified && <span className="verified-badge">✓ Verified Mentor</span>}
       </div>
+
+      {/* Teaching Profile Matrix */}
+      {volunteer?.teachingPreferences?.length > 0 && (
+        <div className="card p-5" style={{ animation: 'fadeUp 0.4s ease 0.03s forwards', opacity: 0 }}>
+          <div className="flex items-center gap-2 mb-4">
+            <BookOpen size={18} className="text-brand-600" />
+            <h2 className="font-display font-semibold text-surface-800">Your Teaching Profile</h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {volunteer.teachingPreferences.sort((a,b)=>a.class-b.class).map(pref => (
+              <div key={pref.class} className="bg-surface-50 border border-surface-200 rounded-xl p-3">
+                <h3 className="font-semibold text-sm text-surface-900 border-b border-surface-200 pb-2 mb-2">Class {pref.class}</h3>
+                <div className="flex flex-wrap gap-1.5 mt-2">
+                  {pref.subjects.map(sub => (
+                    <span key={sub} className="inline-block bg-brand-50 border border-brand-200 text-brand-800 font-medium text-xs leading-tight px-2.5 py-1.5 rounded-md">{sub}</span>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Lockout State for unapproved volunteers */}
       {user?.role === 'volunteer' && !volunteer?.isApproved ? (
@@ -53,8 +75,8 @@ export default function VolunteerDashboard() {
           <div className="card p-8 border-amber-200 bg-amber-50 flex flex-col items-center text-center">
             <AlertCircle size={48} className="text-amber-500 mb-4" />
             <h2 className="font-display font-bold text-2xl text-amber-900 mb-2">Account Pending Verification</h2>
-            <p className="text-amber-800 max-w-lg mb-6">
-              Your profile is currently under review by your NGO. You must pass the required qualification exams for your selected subjects before you can be approved and assigned students.
+            <p className="text-amber-800 max-w-lg mb-6 text-sm">
+              Your profile is currently under review. Once you complete your qualification exams, your NGO Administrator will manually review your results and approve your application.
             </p>
           </div>
 
@@ -69,16 +91,16 @@ export default function VolunteerDashboard() {
                     <div>
                       <div className="flex items-center justify-between mb-1">
                         <span className="font-bold text-surface-900">Class {reqExam.exam.class} {reqExam.exam.subject}</span>
-                        {reqExam.status === 'passed' && <span className="badge bg-green-100 text-green-700 text-xs">✓ Passed ({reqExam.score}%)</span>}
-                        {reqExam.status === 'failed' && <span className="badge bg-red-100 text-red-700 text-xs">Failed ({reqExam.score}%)</span>}
-                        {reqExam.status === 'pending' && <span className="badge bg-amber-100 text-amber-700 text-xs text-center leading-tight">Pending</span>}
+                        {reqExam.status === 'passed' && <span className="badge bg-green-600 text-white text-xs font-semibold">✓ Passed ({reqExam.score}%)</span>}
+                        {reqExam.status === 'failed' && <span className="badge bg-red-600 text-white text-xs font-semibold">Failed ({reqExam.score}%)</span>}
+                        {reqExam.status === 'pending' && <span className="badge bg-amber-100 text-amber-700 text-xs font-semibold">Pending</span>}
                       </div>
                       <p className="text-xs text-surface-500">{reqExam.exam.questions?.length || 0} Questions · {reqExam.exam.totalMarks} Marks</p>
                     </div>
                     {reqExam.status !== 'passed' && (
                       <button 
-                        onClick={() => navigate(`/student/exam/${reqExam.exam._id}`)} 
-                        className="btn-primary py-2 text-sm justify-center w-full"
+                        onClick={() => navigate(`/exam/${reqExam.exam._id}`)} 
+                        className="btn-primary py-2 text-sm justify-center w-full mt-2"
                       >
                         {reqExam.status === 'failed' ? 'Retake Exam' : 'Take Exam'}
                       </button>

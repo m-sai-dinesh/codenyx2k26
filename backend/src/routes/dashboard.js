@@ -44,53 +44,77 @@ router.get('/ngo', protect, authorize('ngo_admin'), async (req, res) => {
     }));
 
     // Pending Volunteers with their qualification exam scores
-    let pendingVolunteers = volunteers.filter(v => !v.isApproved).map(v => {
+    let pendingVolunteers = volunteers.filter(v => !v.isApproved && v.userId).map(v => {
       return {
-        id: v.userId?._id,
-        name: v.userId?.name,
-        email: v.userId?.email,
+        id: v.userId._id,
+        name: v.userId.name,
+        email: v.userId.email,
         teachingPreferences: v.teachingPreferences || []
       };
     });
 
+    // Filter out any with undefined ids
+    pendingVolunteers = pendingVolunteers.filter(pv => pv.id);
+
     // Populate actual exam results for pending volunteers concurrently
-    const examResultsData = await ExamResult.find({
-      studentId: { $in: pendingVolunteers.map(v => v.id) }
-    }).populate('examId');
+    const validIds = pendingVolunteers.map(v => v.id).filter(Boolean);
+    const examResultsData = validIds.length > 0 
+      ? await ExamResult.find({ studentId: { $in: validIds } }).populate('examId')
+      : [];
 
-    const allQualExams = await Exam.find({ type: 'qualification', ngoId: req.user.ngoId, isActive: true });
+    const allQualExams = await Exam.find({ 
+      type: 'qualification', 
+      isActive: true,
+      ...(ngoId ? { ngoId } : {})
+    });
 
-    pendingVolunteers = pendingVolunteers.filter(pv => {
-      if (!pv.teachingPreferences || pv.teachingPreferences.length === 0) return false;
-      
+    pendingVolunteers = pendingVolunteers.map(pv => {
       pv.examResults = [];
-      let passedAll = true;
+
+      if (!pv.teachingPreferences || pv.teachingPreferences.length === 0) {
+        return pv;
+      }
 
       for (const pref of pv.teachingPreferences) {
-        for (const subject of pref.subjects) {
-          const exam = allQualExams.find(e => e.class === pref.class && e.subject.toLowerCase() === subject.toLowerCase());
+        for (const subject of (pref.subjects || [])) {
+          const exam = allQualExams.find(e => {
+            const examClass = parseInt(e.class);
+            const prefClass = parseInt(pref.class);
+            return examClass === prefClass && e.subject.toLowerCase() === subject.toLowerCase();
+          });
           
           if (!exam) {
-            passedAll = false;
-            pv.examResults.push({ class: pref.class, subject, percentage: 0, status: 'missing_exam' });
+            pv.examResults.push({ id: null, class: pref.class, subject, percentage: 0, status: 'missing_exam' });
             continue;
           }
           
-          const result = examResultsData.find(r => r.studentId.toString() === pv.id.toString() && r.examId?._id.toString() === exam._id.toString());
+          const result = examResultsData.find(r => 
+            r.studentId && pv.id && 
+            r.studentId.toString() === pv.id.toString() && 
+            r.examId?._id?.toString() === exam._id.toString()
+          );
           
-          if (!result || result.percentage < 60) {
-            passedAll = false;
+          let mcqTotal = 0;
+          if (exam && exam.questions) {
+            exam.questions.forEach(q => {
+              if (q.type !== 'text') {
+                mcqTotal += (q.marks || 1);
+              }
+            });
           }
           
           pv.examResults.push({
+            id: result ? result._id : null,
             class: pref.class,
             subject,
             percentage: result ? result.percentage : 0,
+            score: result ? result.score : 0,
+            totalMarks: result ? mcqTotal : 0,
             status: result ? (result.percentage >= 60 ? 'passed' : 'failed') : 'pending'
           });
         }
       }
-      return passedAll;
+      return pv;
     });
 
     // Subject health overview across NGO

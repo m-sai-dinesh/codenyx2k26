@@ -3,6 +3,7 @@ import api from '../api/client';
 import { AlertTriangle, Users, BookOpen, Trophy, TrendingUp, CheckCircle2, BarChart3, UserCheck, Check, Plus } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { useNavigate } from 'react-router-dom';
+import { X } from 'lucide-react'; // imported X for modal
 
 const RISK_COLORS = ['#ef4444', '#f97316', '#eab308'];
 
@@ -20,10 +21,26 @@ export default function NGODashboard() {
   const navigate = useNavigate();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [reviewResultId, setReviewResultId] = useState(null);
+  const [reviewData, setReviewData] = useState(null);
 
   useEffect(() => {
     api.get('/dashboard/ngo').then(r => setData(r.data)).finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    if (!reviewResultId) {
+      setReviewData(null);
+      return;
+    }
+    api.get(`/exams/results/${reviewResultId}`)
+      .then(res => setReviewData(res.data))
+      .catch(err => { 
+        // fallback error handling
+        console.error(err);
+        setReviewResultId(null); 
+      });
+  }, [reviewResultId]);
 
   if (loading) return <div className="flex flex-col gap-4">{[1,2,3,4].map(i => <div key={i} className="card h-32 shimmer" />)}</div>;
 
@@ -33,12 +50,12 @@ export default function NGODashboard() {
   const handleApprove = async (volunteerId) => {
     try {
       await api.put(`/users/${volunteerId}/approve`);
-      // Update local state by removing from pending and possibly refetching, 
-      // but simpler to just refetch the dashboard data
       const r = await api.get('/dashboard/ngo');
       setData(r.data);
+      import('react-hot-toast').then(m => m.default.success('Volunteer approved successfully!'));
     } catch (err) {
       console.error('Failed to approve volunteer', err);
+      import('react-hot-toast').then(m => m.default.error('Failed to approve'));
     }
   };
 
@@ -92,7 +109,7 @@ export default function NGODashboard() {
                 <h3 className="font-semibold text-sm text-surface-900 border-b border-surface-200 pb-2 mb-2">Class {cls}</h3>
                 <div className="flex flex-col gap-1.5">
                   {subjects.map(subject => {
-                    const exists = overview.qualExams?.some(e => e.class === cls && e.subject.toLowerCase() === subject.toLowerCase());
+                    const exists = overview.qualExams?.some(e => parseInt(e.class) === cls && e.subject.toLowerCase() === subject.toLowerCase());
                     return (
                       <div key={subject} className="flex items-center justify-between px-2 py-1.5 rounded-lg border bg-white border-surface-100">
                         <span className="text-xs font-medium text-surface-700 truncate mr-2" title={subject}>{subject}</span>
@@ -159,62 +176,46 @@ export default function NGODashboard() {
               <h2 className="font-display font-semibold text-amber-900">Pending Volunteer Approvals ({pendingVolunteers.length})</h2>
             </div>
           </div>
-          <div className="divide-y divide-surface-50 p-4">
-            {pendingVolunteers.map((pv, i) => (
+          <div className="divide-y divide-surface-100 p-4">
+            {pendingVolunteers.map((pv, i) => {
+              const attendedExams = (pv.examResults || []).filter(r => r.status === 'passed' || r.status === 'failed');
+              return (
               <div key={pv.id} className="py-4 flex flex-col gap-3" style={{ animationDelay: `${i * 0.05}s` }}>
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center text-amber-700 font-bold text-lg">
-                      {pv.name?.[0]?.toUpperCase()}
-                    </div>
-                    <div>
-                      <p className="font-semibold text-surface-900">{pv.name}</p>
-                      <p className="text-xs text-surface-500">{pv.email}</p>
-                    </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex flex-col">
+                    <p className="font-semibold text-surface-900 leading-tight">{pv.name}</p>
+                    <p className="text-xs text-surface-500 mt-0.5">{pv.email}</p>
                   </div>
                   <button 
                     onClick={() => handleApprove(pv.id)}
-                    className="btn-primary py-1.5 px-3 text-sm flex items-center gap-1 bg-green-600 hover:bg-green-700 focus:ring-green-500"
+                    className="btn-primary py-1.5 px-4 text-sm flex items-center gap-1.5 bg-green-600 hover:bg-green-700 focus:ring-green-500"
                   >
                     <Check size={16} /> Approve
                   </button>
                 </div>
 
-                <div className="bg-surface-50 rounded-xl p-3 grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-xs font-semibold text-surface-500 mb-1">Teaching Preferences</p>
-                    {pv.teachingPreferences?.length ? (
-                      <div className="flex flex-wrap gap-1">
-                        {pv.teachingPreferences.map(pref => (
-                          <span key={pref.class} className="badge bg-white border border-surface-200 text-surface-600 text-[10px]">
-                            Class {pref.class}: {pref.subjects.join(', ')}
+                {attendedExams.length > 0 ? (
+                  <div className="flex flex-col gap-1.5">
+                    {attendedExams.map((res, i) => (
+                      <div key={i} className="flex items-center justify-between bg-surface-50 rounded-lg px-3 py-2 border border-surface-100">
+                        <span className="text-sm font-medium text-surface-800">Class {res.class} — {res.subject}</span>
+                        <div className="flex items-center gap-2">
+                          {res.id && (
+                            <button onClick={() => setReviewResultId(res.id)} className="text-xs bg-brand-50 text-brand-700 px-2 py-0.5 rounded-md border border-brand-200 hover:bg-brand-100 font-medium">Review</button>
+                          )}
+                          <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-green-600 text-white">
+                            {res.score}/{res.totalMarks}
                           </span>
-                        ))}
+                        </div>
                       </div>
-                    ) : (
-                      <span className="text-xs text-red-500">No preferences configured</span>
-                    )}
+                    ))}
                   </div>
-                  <div>
-                    <p className="text-xs font-semibold text-surface-500 mb-1">Qualification Status</p>
-                    {pv.examResults?.length ? (
-                      <div className="flex flex-col gap-1">
-                        {pv.examResults.map((res, i) => (
-                          <div key={i} className="flex items-center justify-between text-xs">
-                            <span className="text-surface-600">Class {res.class} {res.subject}</span>
-                            <span className={`font-medium ${res.status === 'passed' ? 'text-green-600' : 'text-red-600'}`}>
-                              {res.percentage}% ({res.status})
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <span className="text-xs text-amber-600">No exams taken yet</span>
-                    )}
-                  </div>
-                </div>
+                ) : (
+                  <p className="text-xs text-amber-600">No exams taken yet</p>
+                )}
               </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
@@ -305,6 +306,74 @@ export default function NGODashboard() {
           ))}
         </div>
       </div>
+
+      {/* Review Result Modal */}
+      {reviewResultId && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl">
+            <div className="p-4 border-b border-surface-200 flex items-center justify-between bg-surface-50">
+              <div>
+                <h2 className="font-display font-semibold text-surface-900 border-none m-0">Review Exam Submission</h2>
+                {reviewData && <p className="text-sm text-surface-500 mt-0.5">{reviewData.studentId?.name} · {reviewData.examId?.title}</p>}
+              </div>
+              <button onClick={() => setReviewResultId(null)} className="p-2 text-surface-500 hover:text-surface-900 bg-white rounded-lg border border-surface-200">
+                <X size={16} />
+              </button>
+            </div>
+            
+            <div className="p-4 overflow-y-auto flex-1 bg-surface-50/50">
+              {!reviewData ? (
+                <div className="flex items-center justify-center h-40"><span className="w-6 h-6 border-2 border-brand-600 border-t-transparent rounded-full spin" /></div>
+              ) : (
+                <div className="flex flex-col gap-4">
+                  {reviewData.examId?.questions.map((q, i) => {
+                    const ans = reviewData.answers.find(a => a.questionIndex === i);
+                    return (
+                      <div key={i} className="bg-white p-4 rounded-xl border border-surface-200">
+                        <p className="font-medium text-sm text-surface-900 mb-2">
+                          <span className="text-brand-600 font-bold mr-2">Q{i+1}.</span>{q.text}
+                          <span className="text-xs text-surface-400 ml-2">({q.marks||1} marks)</span>
+                        </p>
+                        
+                        {q.type === 'text' ? (
+                          <div className="mt-2">
+                            <p className="text-xs font-semibold text-surface-500 mb-1">Volunteer's Written Response:</p>
+                            <div className="bg-purple-50 border border-purple-100 p-3 rounded-lg text-sm text-purple-900 whitespace-pre-wrap">
+                              {ans?.textResponse || <span className="text-purple-300 italic">No response provided</span>}
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            {q.options.filter(o=>o).map((opt, oi) => {
+                              const isSelected = ans?.selectedOption === oi;
+                              const isCorrect = q.correctAnswer === oi;
+                              return (
+                                <div key={oi} className={`p-2 rounded-lg text-xs border ${
+                                  isSelected && isCorrect ? 'bg-green-50 border-green-200 text-green-800' :
+                                  isSelected && !isCorrect ? 'bg-red-50 border-red-200 text-red-800' :
+                                  !isSelected && isCorrect ? 'bg-green-50 border-green-200 text-green-800' :
+                                  'bg-surface-50 border-surface-200 text-surface-500'
+                                }`}>
+                                  <span className="font-bold mr-1">{String.fromCharCode(65+oi)}.</span> {opt}
+                                  {isSelected && <span className="ml-2 font-bold">— Selected</span>}
+                                  {isCorrect && <span className="ml-2 font-bold">— Correct</span>}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+            <div className="p-4 border-t border-surface-200 bg-white flex justify-end">
+              <button onClick={() => setReviewResultId(null)} className="btn-primary">Done Reviewing</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

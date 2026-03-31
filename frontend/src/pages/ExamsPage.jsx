@@ -6,19 +6,25 @@ import toast from 'react-hot-toast';
 import { BookOpen, Plus, X, ChevronRight, Trophy, TrendingUp, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 
-function ExamTaker({ exam, onDone }) {
+export function ExamTaker({ exam, onDone }) {
   const [answers, setAnswers] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState(null);
 
-  const setAnswer = (qi, oi) => setAnswers(p => ({ ...p, [qi]: oi }));
-  const allAnswered = exam.questions.every((_, i) => answers[i] !== undefined);
+  const setAnswer = (qi, value) => setAnswers(p => ({ ...p, [qi]: value }));
+  const allAnswered = exam.questions.every((_, i) => answers[i] !== undefined && answers[i] !== '');
 
   const handleSubmit = async () => {
     setSubmitting(true);
     try {
       const { data } = await api.post(`/exams/${exam._id}/submit`, {
-        answers: Object.entries(answers).map(([qi, oi]) => ({ questionIndex: parseInt(qi), selectedOption: oi }))
+        answers: Object.entries(answers).map(([qi, value]) => {
+          const q = exam.questions[qi];
+          if (q.type === 'text') {
+            return { questionIndex: parseInt(qi), textResponse: value };
+          }
+          return { questionIndex: parseInt(qi), selectedOption: value };
+        })
       });
       setResult(data.result);
       toast.success(`Exam submitted! Score: ${data.result.percentage}%`);
@@ -66,19 +72,28 @@ function ExamTaker({ exam, onDone }) {
               <span className="text-brand-600 font-bold mr-2">Q{qi + 1}.</span>{q.text}
               <span className="text-xs text-surface-400 ml-2">({q.marks || 1} mark)</span>
             </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {q.options?.map((opt, oi) => (
-                <button key={oi} onClick={() => setAnswer(qi, oi)}
-                  className={`p-3 rounded-xl border text-left text-sm font-medium transition-all ${
-                    answers[qi] === oi
-                      ? 'border-brand-500 bg-brand-50 text-brand-700'
-                      : 'border-surface-200 text-surface-700 hover:border-brand-300 hover:bg-brand-50/50'
-                  }`}>
-                  <span className="font-bold mr-2 text-brand-500">{String.fromCharCode(65 + oi)}.</span>
-                  {opt}
-                </button>
-              ))}
-            </div>
+            {q.type === 'text' ? (
+              <textarea 
+                className="input min-h-[100px] resize-none text-sm" 
+                placeholder="Type your answer here..."
+                value={answers[qi] || ''}
+                onChange={e => setAnswer(qi, e.target.value)}
+              />
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {q.options?.map((opt, oi) => (
+                  <button key={oi} onClick={() => setAnswer(qi, oi)}
+                    className={`p-3 rounded-xl border text-left text-sm font-medium transition-all ${
+                      answers[qi] === oi
+                        ? 'border-brand-500 bg-brand-50 text-brand-700'
+                        : 'border-surface-200 text-surface-700 hover:border-brand-300 hover:bg-brand-50/50'
+                    }`}>
+                    <span className="font-bold mr-2 text-brand-500">{String.fromCharCode(65 + oi)}.</span>
+                    {opt}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         ))}
       </div>
@@ -116,7 +131,7 @@ export default function ExamsPage() {
     durationMinutes: 30, 
     questions: [] 
   });
-  const [newQ, setNewQ] = useState({ text: '', topic: '', options: ['', '', '', ''], correctAnswer: 0, marks: 1 });
+  const [newQ, setNewQ] = useState({ type: 'mcq', text: '', topic: '', options: ['', '', '', ''], correctAnswer: 0, marks: 1 });
 
   useEffect(() => {
     if (isStudent) {
@@ -136,9 +151,13 @@ export default function ExamsPage() {
 
   const addQuestion = () => {
     if (!newQ.text || !newQ.topic) return toast.error('Fill question text and topic');
+    if (newQ.type === 'mcq') {
+      const filled = newQ.options.filter(o => o.trim());
+      if (filled.length < 2) return toast.error('Add at least 2 options for MCQ');
+    }
     setForm(p => ({ ...p, questions: [...p.questions, { ...newQ }] }));
-    setNewQ({ text: '', topic: '', options: ['', '', '', ''], correctAnswer: 0, marks: 1 });
-    toast.success('Question added');
+    setNewQ({ type: 'mcq', text: '', topic: '', options: ['', '', '', ''], correctAnswer: 0, marks: 1 });
+    toast.success('Question added!');
   };
 
   const handleCreate = async () => {
@@ -275,22 +294,79 @@ export default function ExamsPage() {
 
           {/* Add question */}
           <div className="border border-surface-200 rounded-xl p-4 mb-4">
-            <p className="font-semibold text-sm text-surface-700 mb-3">Add Question ({form.questions.length} added)</p>
+            <div className="flex items-center justify-between mb-3">
+              <p className="font-semibold text-sm text-surface-700">Add Question Tracker</p>
+              <div className="flex bg-surface-100 rounded-lg p-1">
+                <button type="button" onClick={() => setNewQ(p => ({...p, type: 'mcq'}))} className={`px-3 py-1 text-xs font-semibold rounded-md ${newQ.type === 'mcq' ? 'bg-white shadow-sm text-brand-700' : 'text-surface-500'}`}>MCQ</button>
+                <button type="button" onClick={() => setNewQ(p => ({...p, type: 'text'}))} className={`px-3 py-1 text-xs font-semibold rounded-md ${newQ.type === 'text' ? 'bg-white shadow-sm text-brand-700' : 'text-surface-500'}`}>Text</button>
+              </div>
+            </div>
             <input className="input mb-2 text-sm" placeholder="Question text" value={newQ.text} onChange={e => setNewQ(p => ({ ...p, text: e.target.value }))} />
-            <input className="input mb-3 text-sm" placeholder="Topic (e.g. Fractions)" value={newQ.topic} onChange={e => setNewQ(p => ({ ...p, topic: e.target.value }))} />
-            <div className="grid grid-cols-2 gap-2 mb-3">
-              {newQ.options.map((opt, i) => (
-                <div key={i} className="flex items-center gap-2">
-                  <button type="button" onClick={() => setNewQ(p => ({ ...p, correctAnswer: i }))}
-                    className={`w-6 h-6 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition-all ${newQ.correctAnswer === i ? 'border-brand-600 bg-brand-600' : 'border-surface-300'}`}>
-                    {newQ.correctAnswer === i && <CheckCircle2 size={10} color="white" />}
-                  </button>
-                  <input className="input text-sm flex-1" placeholder={`Option ${String.fromCharCode(65+i)}`} value={opt} onChange={e => { const o=[...newQ.options]; o[i]=e.target.value; setNewQ(p=>({...p,options:o})); }} />
+            <div className="flex gap-2 mb-3">
+              <input className="input text-sm flex-1" placeholder="Topic (e.g. Fractions)" value={newQ.topic} onChange={e => setNewQ(p => ({ ...p, topic: e.target.value }))} />
+              <div className="flex items-center gap-1">
+                <label className="text-xs text-surface-500 whitespace-nowrap">Marks:</label>
+                <input className="input text-sm w-16" type="number" min="1" max="20" value={newQ.marks} onChange={e => setNewQ(p => ({ ...p, marks: parseInt(e.target.value) || 1 }))} />
+              </div>
+            </div>
+            
+            {newQ.type === 'mcq' && (
+              <div className="flex flex-col gap-2 mb-3">
+                <p className="text-xs text-surface-500 font-medium">Options — click the circle to mark the correct answer</p>
+                {newQ.options.map((opt, i) => (
+                  <div key={i} className="flex items-center gap-2">
+                    <button type="button" onClick={() => setNewQ(p => ({ ...p, correctAnswer: i }))}
+                      className={`w-6 h-6 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition-all ${newQ.correctAnswer === i ? 'border-brand-600 bg-brand-600' : 'border-surface-300 hover:border-brand-400'}`}>
+                      {newQ.correctAnswer === i && <CheckCircle2 size={10} color="white" />}
+                    </button>
+                    <input className={`input text-sm flex-1 ${newQ.correctAnswer === i ? 'border-brand-400 bg-brand-50' : ''}`}
+                      placeholder={`Option ${String.fromCharCode(65+i)}${newQ.correctAnswer === i ? ' (Correct)' : ''}`}
+                      value={opt}
+                      onChange={e => { const o=[...newQ.options]; o[i]=e.target.value; setNewQ(p=>({...p,options:o})); }} />
+                  </div>
+                ))}
+              </div>
+            )}
+            <button type="button" onClick={addQuestion} className="btn-secondary text-sm py-2 w-full justify-center text-brand-600 border-brand-200 bg-brand-50 hover:bg-brand-100">+ Add Question</button>
+          </div>
+
+          {form.questions.length > 0 && (
+            <div className="flex flex-col gap-2 mb-6">
+              <div className="flex items-center justify-between">
+                <p className="font-semibold text-sm text-surface-700">Drafted Questions ({form.questions.length})</p>
+                <p className="text-xs text-surface-400">Total: {form.questions.reduce((s,q) => s+(q.marks||1), 0)} marks</p>
+              </div>
+              {form.questions.map((q, idx) => (
+                <div key={idx} className="p-3 rounded-lg border border-surface-200 bg-surface-50">
+                  <div className="flex items-start justify-between">
+                    <p className="text-sm font-medium text-surface-900"><span className="text-brand-600 font-bold mr-2">Q{idx+1}.</span>{q.text}</p>
+                    <button type="button" onClick={() => setForm(p => ({...p, questions: p.questions.filter((_, i) => i !== idx)}))} className="text-red-400 hover:text-red-600 p-1 ml-2 flex-shrink-0">
+                      <X size={14} />
+                    </button>
+                  </div>
+                  <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                    <span className={`inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                      q.type === 'text' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'
+                    }`}>{q.type === 'text' ? 'Text Response' : 'MCQ'}</span>
+                    <span className="text-[10px] text-surface-500 bg-white border border-surface-200 px-2 py-0.5 rounded-full">{q.topic}</span>
+                    <span className="text-[10px] text-surface-500 bg-white border border-surface-200 px-2 py-0.5 rounded-full">{q.marks||1} mark{(q.marks||1)>1?'s':''}</span>
+                  </div>
+                  {q.type === 'mcq' && (
+                    <div className="mt-2 flex flex-col gap-1">
+                      {q.options.filter(o=>o).map((opt, i) => (
+                        <div key={i} className={`flex items-center gap-2 text-xs px-2 py-1 rounded-lg ${
+                          i === q.correctAnswer ? 'bg-green-50 border border-green-200 text-green-800 font-semibold' : 'text-surface-500'
+                        }`}>
+                          <span className="font-bold">{String.fromCharCode(65+i)}.</span> {opt}
+                          {i === q.correctAnswer && <span className="ml-auto text-green-600">✓ Correct</span>}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
-            <button type="button" onClick={addQuestion} className="btn-secondary text-sm py-2 w-full justify-center">+ Add Question</button>
-          </div>
+          )}
 
           <button onClick={handleCreate} disabled={creating || form.questions.length === 0} className="btn-primary w-full justify-center py-3">
             {creating ? <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full spin" /> : <><Trophy size={16} /> Publish Exam</>}

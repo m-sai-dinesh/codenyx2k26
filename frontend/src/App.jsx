@@ -20,6 +20,7 @@ import OAuthSuccess from './pages/OAuthSuccess';
 import OAuthError from './pages/OAuthError';
 import NGOAdminLogin from './pages/NGOAdminLogin';
 import AppLayout from './components/AppLayout';
+import TakeExamPage from './pages/TakeExamPage';
 
 const ProtectedRoute = ({ children, roles }) => {
   const { user, loading } = useAuth();
@@ -58,6 +59,7 @@ export default function App() {
           <Route path="/register/student" element={<RegisterStudent />} />
           <Route path="/register/volunteer" element={<RegisterVolunteer />} />
           <Route path="/dashboard" element={<DashboardRouter />} />
+          <Route path="/exam/:id" element={<ProtectedRoute roles={['student', 'volunteer', 'peer_mentor']}><TakeExamPage /></ProtectedRoute>} />
           <Route path="/student" element={<ProtectedRoute roles={['student']}><AppLayout role="student" /></ProtectedRoute>}>
             <Route path="dashboard" element={<StudentDashboard />} />
             <Route path="doubts" element={<DoubtsPage />} />

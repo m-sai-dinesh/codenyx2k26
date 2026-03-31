@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const questionSchema = new mongoose.Schema({
   text: { type: String, required: true },
   topic: { type: String, required: true },
+  type: { type: String, enum: ['mcq', 'text'], default: 'mcq' },
   options: [{ type: String }],
   correctAnswer: { type: Number }, // index of correct option
   marks: { type: Number, default: 1 }
@@ -31,7 +32,7 @@ const examResultSchema = new mongoose.Schema({
   examId: { type: mongoose.Schema.Types.ObjectId, ref: 'Exam', required: true },
   studentId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   ngoId: { type: mongoose.Schema.Types.ObjectId, ref: 'NGO' },
-  answers: [{ questionIndex: Number, selectedOption: Number }],
+  answers: [{ questionIndex: Number, selectedOption: Number, textResponse: String }],
   score: { type: Number, required: true },
   totalMarks: { type: Number, required: true },
   percentage: { type: Number },

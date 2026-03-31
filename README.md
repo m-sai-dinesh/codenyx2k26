@@ -3,7 +3,7 @@
 > "No child falls behind silently."
 
 A three-tier learning platform connecting Telangana government school students with qualified volunteers and senior peer mentors. Built for the CodeNyx 36-Hour Hackathon.
-
+    
 ---
 
 ## Tech Stack

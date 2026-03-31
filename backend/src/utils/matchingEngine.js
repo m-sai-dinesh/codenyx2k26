@@ -73,8 +73,34 @@ const findBestMentor = async (student, ngoId) => {
   let bestVolunteer = null;
   let bestVolunteerScore = 0;
 
+  const { Exam, ExamResult } = require('../models/Exam');
+  const validUserIds = volunteers.map(v => v.userId._id);
+  const passedExams = validUserIds.length > 0 ? await ExamResult.find({
+    studentId: { $in: validUserIds },
+    percentage: { $gte: 60 }
+  }).populate('examId') : [];
+
   for (const vol of volunteers) {
-    const score = calculateMatchScore(student, vol, vol.subjects, vol.grades);
+    const subjects = new Set();
+    const grades = new Set();
+
+    const myPassedExams = passedExams.filter(r => r.studentId.toString() === vol.userId._id.toString() && r.examId);
+
+    for (const pref of vol.teachingPreferences || []) {
+      const cls = parseInt(pref.class);
+      (pref.subjects || []).forEach(s => {
+        const hasPassed = myPassedExams.some(r => parseInt(r.examId.class) === cls && r.examId.subject.toLowerCase() === s.toLowerCase());
+        if (hasPassed) {
+          grades.add(cls);
+          subjects.add(s);
+        }
+      });
+    }
+
+    // Skip if volunteer has no passed subjects
+    if (subjects.size === 0) continue;
+
+    const score = calculateMatchScore(student, vol, Array.from(subjects), Array.from(grades));
     if (score > bestVolunteerScore) {
       bestVolunteerScore = score;
       bestVolunteer = vol;
