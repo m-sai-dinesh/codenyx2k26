@@ -6,7 +6,7 @@ A three-tier learning support platform connecting Telangana government school st
 
 ---
 
-## Tech Stack
+## Tech Stacks
 
 | Layer | Technology |
 |---|---|
